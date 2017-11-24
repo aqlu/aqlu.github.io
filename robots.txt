@@ -1,0 +1,14 @@
+User-agent: *
+Allow: /
+Allow: /archives/ 
+Allow: /about/
+Allow: /categories/
+Allow: /tags/
+
+Disallow: /js/
+Disallow: /css/
+Disallow: /lib/
+Disallow: /images/
+
+Sitemap: http://zyouwei.com/sitemap.xml
+Sitemap: http://zyouwei.com/baidusitemap.xml

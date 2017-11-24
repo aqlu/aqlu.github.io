@@ -5,9 +5,9 @@
   <subtitle>学着写博客</subtitle>
   <link href="/atom.xml" rel="self"/>
   
-  <link href="http://aqlu.github.io/"/>
+  <link href="http://zyouwei.com/"/>
   <updated>2017-11-21T10:00:54.990Z</updated>
-  <id>http://aqlu.github.io/</id>
+  <id>http://zyouwei.com/</id>
   
   <author>
     <name>Angus_Lu</name>
@@ -18,8 +18,8 @@
   
   <entry>
     <title>MacOS科学上网</title>
-    <link href="http://aqlu.github.io/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/%E5%B7%A5%E5%85%B7%E7%B1%BB/MacOs-scientific-Surf-the-Internet.html"/>
-    <id>http://aqlu.github.io/技术笔记/工具类/MacOs-scientific-Surf-the-Internet.html</id>
+    <link href="http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/%E5%B7%A5%E5%85%B7%E7%B1%BB/MacOs-scientific-Surf-the-Internet.html"/>
+    <id>http://zyouwei.com/技术笔记/工具类/MacOs-scientific-Surf-the-Internet.html</id>
     <published>2017-11-21T07:07:27.000Z</published>
     <updated>2017-11-21T10:00:54.990Z</updated>
     
@@ -31,21 +31,21 @@
     
     </summary>
     
-      <category term="技术笔记" scheme="http://aqlu.github.io/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/"/>
+      <category term="技术笔记" scheme="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/"/>
     
-      <category term="工具类" scheme="http://aqlu.github.io/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/%E5%B7%A5%E5%85%B7%E7%B1%BB/"/>
+      <category term="工具类" scheme="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/%E5%B7%A5%E5%85%B7%E7%B1%BB/"/>
     
     
-      <category term="vmess" scheme="http://aqlu.github.io/tags/vmess/"/>
+      <category term="vmess" scheme="http://zyouwei.com/tags/vmess/"/>
     
-      <category term="翻墙" scheme="http://aqlu.github.io/tags/%E7%BF%BB%E5%A2%99/"/>
+      <category term="翻墙" scheme="http://zyouwei.com/tags/%E7%BF%BB%E5%A2%99/"/>
     
   </entry>
   
   <entry>
     <title>Hello World!</title>
-    <link href="http://aqlu.github.io//hello-world.html"/>
-    <id>http://aqlu.github.io//hello-world.html</id>
+    <link href="http://zyouwei.com//hello-world.html"/>
+    <id>http://zyouwei.com//hello-world.html</id>
     <published>2017-11-21T04:35:00.000Z</published>
     <updated>2017-11-21T09:11:42.020Z</updated>
     
