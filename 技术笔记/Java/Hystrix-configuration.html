@@ -1,0 +1,1372 @@
+<!DOCTYPE html><html class="theme-next pisces use-motion" lang="zh-Hans"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><meta name="theme-color" content="#222"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="google-site-verification" content="e5C9WgZeIe_4VjbwMw8xd9XW3lyH1KT6BDpCMj8cEbc"><link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css"><link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css"><link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css"><link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico?v=5.1.3"><meta name="keywords" content="java,hystrix,微服务,"><link rel="alternate" href="/atom.xml" title="阿叩·杂记" type="application/atom+xml"><meta name="description" content="介绍Hystrix使用Archaius作为配置属性的默认实现。下面的文档描述了默认使用的HystrixPropertiesStrategy实现，你也可以使用插件的方式来覆盖它。每个属性有四个优先级：代码的全局默认值如果没有设置以下3个，则这是默认值。 全局默认值在下表中显示为 “默认值”。动态全局默认属性你可以使用属性"><meta name="keywords" content="java,hystrix,微服务"><meta property="og:type" content="article"><meta property="og:title" content="Hystrix 配置属性参考"><meta property="og:url" content="http://zyouwei.com/技术笔记/Java/Hystrix-configuration.html"><meta property="og:site_name" content="阿叩·杂记"><meta property="og:description" content="介绍Hystrix使用Archaius作为配置属性的默认实现。下面的文档描述了默认使用的HystrixPropertiesStrategy实现，你也可以使用插件的方式来覆盖它。每个属性有四个优先级：代码的全局默认值如果没有设置以下3个，则这是默认值。 全局默认值在下表中显示为 “默认值”。动态全局默认属性你可以使用属性更改全局默认值。 全局默认属性名称在下表中显示为 “默认属性”。"><meta property="og:locale" content="zh-Hans"><meta property="og:image" content="https://raw.githubusercontent.com/wiki/Netflix/Hystrix/images/isolation-options-1280.png"><meta property="og:image" content="https://github.com/Netflix/Hystrix/wiki/images/rolling-stats-640.png"><meta property="og:image" content="https://github.com/Netflix/Hystrix/wiki/images/thread-configuration-1280.png"><meta property="og:updated_time" content="2018-01-05T04:49:05.107Z"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="Hystrix 配置属性参考"><meta name="twitter:description" content="介绍Hystrix使用Archaius作为配置属性的默认实现。下面的文档描述了默认使用的HystrixPropertiesStrategy实现，你也可以使用插件的方式来覆盖它。每个属性有四个优先级：代码的全局默认值如果没有设置以下3个，则这是默认值。 全局默认值在下表中显示为 “默认值”。动态全局默认属性你可以使用属性更改全局默认值。 全局默认属性名称在下表中显示为 “默认属性”。"><meta name="twitter:image" content="https://raw.githubusercontent.com/wiki/Netflix/Hystrix/images/isolation-options-1280.png"><script type="text/javascript" id="hexo.configurations">var NexT=window.NexT||{},CONFIG={root:"/",scheme:"Pisces",version:"5.1.3",sidebar:{position:"left",display:"post",offset:12,b2t:!1,scrollpercent:!1,onmobile:!1},fancybox:!0,tabs:!0,motion:{enable:!0,async:!1,transition:{post_block:"fadeIn",post_header:"slideDownIn",post_body:"slideDownIn",coll_header:"slideLeftIn",sidebar:"slideUpIn"}},duoshuo:{userId:"0",author:"博主"},algolia:{applicationID:"",apiKey:"",indexName:"",hits:{per_page:10},labels:{input_placeholder:"Search for Posts",hits_empty:"We didn't find any results for the search: ${query}",hits_stats:"${hits} results found in ${time} ms"}}}</script><link rel="canonical" href="http://zyouwei.com/技术笔记/Java/Hystrix-configuration.html"><title>Hystrix 配置属性参考 | 阿叩·杂记</title><script>!function(e,a,t,n,g,c,o){e.GoogleAnalyticsObject=g,e.ga=e.ga||function(){(e.ga.q=e.ga.q||[]).push(arguments)},e.ga.l=1*new Date,c=a.createElement(t),o=a.getElementsByTagName(t)[0],c.async=1,c.src="https://www.google-analytics.com/analytics.js",o.parentNode.insertBefore(c,o)}(window,document,"script",0,"ga"),ga("create","UA-61930663-2","auto"),ga("send","pageview")</script><script type="text/javascript">var _hmt=_hmt||[];!function(){var e=document.createElement("script");e.src="https://hm.baidu.com/hm.js?a301e92960569ee5070a81e3ea1c5834";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)}()</script></head><body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans"><div class="container sidebar-position-left page-post-detail"><div class="headband"></div><header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="header-inner"><div class="site-brand-wrapper"><div class="site-meta"><div class="custom-logo-site-title"><a href="/" class="brand" rel="start"><span class="logo-line-before"><i></i></span> <span class="site-title">阿叩·杂记</span> <span class="logo-line-after"><i></i></span></a></div><p class="site-subtitle">学着写博客</p></div><div class="site-nav-toggle"><button><span class="btn-bar"></span> <span class="btn-bar"></span> <span class="btn-bar"></span></button></div></div><nav class="site-nav"><ul id="menu" class="menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i><br>首页</a></li><li class="menu-item menu-item-about"><a href="/about/index.html" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i><br>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/index.html" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i><br>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/index.html" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i><br>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/index.html" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i><br>归档</a></li><li class="menu-item menu-item-sitemap"><a href="/sitemap.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i><br>站点地图</a></li><li class="menu-item menu-item-commonweal"><a href="/404.html" rel="section"><i class="menu-item-icon fa fa-fw fa-heartbeat"></i><br>公益404</a></li><li class="menu-item menu-item-search"><a href="javascript:;" class="popup-trigger"><i class="menu-item-icon fa fa-search fa-fw"></i><br>搜索</a></li></ul><div class="site-search"><div class="popup search-popup local-search-popup"><div class="local-search-header clearfix"><span class="search-icon"><i class="fa fa-search"></i> </span><span class="popup-btn-close"><i class="fa fa-times-circle"></i></span><div class="local-search-input-wrapper"><input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input"></div></div><div id="local-search-result"></div></div></div></nav></div></header><main id="main" class="main"><div class="main-inner"><div class="content-wrap"><div id="content" class="content"><div id="posts" class="posts-expand"><article class="post post-type-normal" itemscope itemtype="http://schema.org/Article"><div class="post-block"><link itemprop="mainEntityOfPage" href="http://zyouwei.com/技术笔记/Java/Hystrix-configuration.html"><span hidden itemprop="author" itemscope itemtype="http://schema.org/Person"><meta itemprop="name" content="Angus_Lu"><meta itemprop="description" content=""><meta itemprop="image" content="/images/avatar.jpg"></span><span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization"><meta itemprop="name" content="阿叩·杂记"></span><header class="post-header"><h1 class="post-title" itemprop="name headline">Hystrix 配置属性参考</h1><div class="post-meta"><span class="post-time"><span class="post-meta-item-icon"><i class="fa fa-calendar-o"></i> </span><span class="post-meta-item-text">发表于</span> <time title="创建于" itemprop="dateCreated datePublished" datetime="2018-01-04T10:39:38+08:00">2018-01-04 10:39:38 </time></span><span class="post-category"><span class="post-meta-divider">|</span> <span class="post-meta-item-icon"><i class="fa fa-folder-o"></i> </span><span class="post-meta-item-text">分类于</span> <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/技术笔记/" itemprop="url" rel="index"><span itemprop="name">技术笔记</span> </a></span>， <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/技术笔记/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span> </a></span></span><span class="post-comments-count"><span class="post-meta-divider">|</span> <span class="post-meta-item-icon"><i class="fa fa-comment-o"></i> </span><a href="/技术笔记/Java/Hystrix-configuration.html#comments" itemprop="discussionUrl"><span class="post-comments-count disqus-comment-count" data-disqus-identifier="技术笔记/Java/Hystrix-configuration.html" itemprop="commentCount"></span> </a></span><span id="/技术笔记/Java/Hystrix-configuration.html" class="leancloud_visitors" data-flag-title="Hystrix 配置属性参考"><span class="post-meta-divider">|</span> <span class="post-meta-item-icon"><i class="fa fa-eye"></i> </span><span class="post-meta-item-text">阅读次数&#58;</span> <span class="leancloud-visitors-count"></span></span></div></header><div class="post-body" itemprop="articleBody"><h2 id="介绍"><a href="#介绍" class="headerlink" title="介绍"></a>介绍</h2><p>Hystrix使用<a href="https://github.com/Netflix/archaius" target="_blank" rel="noopener">Archaius</a>作为配置属性的默认实现。</p><p>下面的文档描述了默认使用的<a href="http://netflix.github.io/Hystrix/javadoc/index.html?com/netflix/hystrix/strategy/properties/HystrixPropertiesStrategy.html" target="_blank" rel="noopener">HystrixPropertiesStrategy</a>实现，你也可以使用<a href="https://github.com/Netflix/Hystrix/wiki/Plugins" target="_blank" rel="noopener">插件</a>的方式来覆盖它。</p><p>每个属性有四个优先级：</p><ol><li><p><strong>代码的全局默认值</strong></p><p>如果没有设置以下3个，则这是默认值。 全局默认值在下表中显示为 <strong>“默认值”</strong>。</p></li><li><p><strong>动态全局默认属性</strong></p><p>你可以使用属性更改全局默认值。 全局默认属性名称在下表中显示为 <strong>“默认属性”</strong>。</p><a id="more"></a></li><li><p><strong>用代码定义默认实例属性</strong></p><p>你可以定义特定于实例的默认值。例：</p><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">HystrixCommandProperties.Setter().withExecutionTimeoutInMilliseconds(<span class="keyword">int</span> value)</span><br></pre></td></tr></table></figure>
+<p> 你需要类似于以下的方式将这种命令插入到<code>HystrixCommand</code>构造函数中：</p>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">HystrixCommandInstance</span><span class="params">(<span class="keyword">int</span> id)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>(Setter.withGroupKey(HystrixCommandGroupKey.Factory.asKey(<span class="string">"ExampleGroup"</span>))</span><br><span class="line">                .andCommandPropertiesDefaults(HystrixCommandProperties.Setter().withExecutionTimeoutInMilliseconds(<span class="number">500</span>)));</span><br><span class="line">    <span class="keyword">this</span>.id = id;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 一般的设置初始值可以采用便利的构造函数方式。这是一个例子：</p>
+ <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="title">HystrixCommandInstance</span><span class="params">(<span class="keyword">int</span> id)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">super</span>(HystrixCommandGroupKey.Factory.asKey(<span class="string">"ExampleGroup"</span>), <span class="number">500</span>);</span><br><span class="line">    <span class="keyword">this</span>.id = id;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+</li>
+<li><p><strong>动态设置实例属性</strong></p>
+<p> 你可以动态设置实例特定的值，从而覆盖前面三个默认级别。 </p>
+<p> 动态实例属性名称在下表中显示为 <strong>“实例属性”</strong>。 </p>
+<p> 例：</p>
+ <table>
+ <thead>
+ <tr>
+ <th>实例属性</th>
+ <th><code>hystrix.command.HystrixCommandKey.execution.isolation.thread.timeoutInMilliseconds</code></th>
+ </tr>
+ </thead>
+ </table>
+
+<p> 将属性的<a href="http://netflix.github.io/Hystrix/javadoc/index.html?com/netflix/hystrix/HystrixCommandKey.html" target="_blank" rel="noopener">HystrixCommandKey</a>部分替换为您所定位的<code>HystrixCommand</code>的<a href="http://netflix.github.io/Hystrix/javadoc/com/netflix/hystrix/HystrixCommandKey.html#name(" target="_blank" rel="noopener">HystrixCommandKey.name()</a>)值。 </p>
+<p> 例如，如果被命名为“<code>SubscriberGetAccount</code>”，则属性名称将是：</p>
+<blockquote>
+<p><code>hystrix.command.SubscriberGetAccount.execution.isolation.thread.timeoutInMilliseconds</code></p>
+</blockquote>
+</li>
+</ol>
+<h2 id="命令属性（Command-Properties）"><a href="#命令属性（Command-Properties）" class="headerlink" title="命令属性（Command Properties）"></a>命令属性（Command Properties）</h2><p>以下<a href="http://netflix.github.io/Hystrix/javadoc/index.html?com/netflix/hystrix/HystrixCommandProperties.html" target="_blank" rel="noopener">属性</a>将控制<code>HystrixCommand</code>的行为：</p>
+<h3 id="执行（Execution）"><a href="#执行（Execution）" class="headerlink" title="执行（Execution）"></a>执行（Execution）</h3><p>以下属性控制<a href="http://netflix.github.io/Hystrix/javadoc/com/netflix/hystrix/HystrixCommand.html#run(" target="_blank" rel="noopener">HystrixCommand.run()</a>)执行。</p>
+<h4 id="execution-isolation-strategy"><a href="#execution-isolation-strategy" class="headerlink" title="execution.isolation.strategy"></a>execution.isolation.strategy</h4><p>这个属性指示<code>HystrixCommand.run()</code>执行的隔离策略，有以下两种选择之一： </p>
+<ul>
+<li><code>THREAD</code> —— 它在单独的线程上执行，并发请求受线程池中线程数量的限制</li>
+<li><code>SEMAPHORE</code> —— 它在调用线程上执行，并发请求受信号计数的限制</li>
+</ul>
+<p><strong>线程或信号量</strong></p>
+<p>缺省值和建议的设置是运行<code>HystrixCommand</code>时使用线程隔离（<code>THREAD</code>），和运行<code>HystrixObservableCommand</code>时使用信号隔离（<code>SEMAPHORE</code>）。 </p>
+<p>在线程中执行命令能对网络超时提供另一层保护。</p>
+<p>通常情况下，对于<code>HystrixCommand</code>来说，唯一使用信号量隔离的场景是，当调用量非常大（每秒数百次）时单独线程的开销太高；这通常只适用于非网络调用。</p>
+<blockquote>
+<p>Netflix的API在40+线程池中运行100+命令，并且只有少数命令不在线程中运行 —— 那些从内存中的缓存提取元数据或或是门面到线程隔离命令（更多信息请参见<a href="https://github.com/Netflix/Hystrix/wiki/How-To-Use#common-patterns" target="_blank" rel="noopener">Primary + Secondary with Fallback” pattern</a>）。</p>
+</blockquote>
+<p><img src="https://raw.githubusercontent.com/wiki/Netflix/Hystrix/images/isolation-options-1280.png" alt="isolation-options"></p>
+<p>更多信息请参见<a href="https://github.com/Netflix/Hystrix/wiki/How-it-Works#isolation" target="_blank" rel="noopener">隔离是如何工作的</a>。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>THREAD</code>（参见：<code>ExecutionIsolationStrategy.THREAD</code>）</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>取值范围</strong></td>
+<td style="text-align:left"><code>THREAD</code>, <code>SEMAPHORE</code></td>
+</tr>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.execution.isolation.strategy</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.execution.isolation.strategy</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left">// to use thread isolation <br> <code>HystrixCommandProperties.Setter().withExecutionIsolationStrategy(ExecutionIsolationStrategy.THREAD)</code>  <br> // to use semaphore isolation  <br> <code>HystrixCommandProperties.Setter().withExecutionIsolationStrategy(ExecutionIsolationStrategy.SEMAPHORE)</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="execution-isolation-thread-timeoutInMilliseconds"><a href="#execution-isolation-thread-timeoutInMilliseconds" class="headerlink" title="execution.isolation.thread.timeoutInMilliseconds"></a>execution.isolation.thread.timeoutInMilliseconds</h4><p>该属性设置以毫秒为单位，在该时间之后，调用者将观察到超时并离开命令执行。 Hystrix将<code>HystrixCommand</code>标记为<code>TIMEOUT</code>，并执行回退逻辑。请注意，如果需要可以为每个命令配置关闭超时的设置（请参阅<code>command.timeout.enabled</code>）。</p>
+<p><strong>注意：</strong> 超时将在<code>HystrixCommand.queue()</code>上触发，即使调用者从未在生成的<code>Future</code>上调用<code>get()</code>。在Hystrix <code>1.4.0</code>之前，只有调用<code>get()</code>才能使超时机制在这种情况下生效。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>1000</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.execution.isolation.thread.timeoutInMilliseconds</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.execution.isolation.thread.timeoutInMilliseconds</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withExecutionTimeoutInMilliseconds(int value)</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="execution-timeout-enabled"><a href="#execution-timeout-enabled" class="headerlink" title="execution.timeout.enabled"></a>execution.timeout.enabled</h4><p>该属性指示<code>HystrixCommand.run()</code>执行是否应该有一个超时。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>true</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.execution.timeout.enabled</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.execution.timeout.enabled</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withExecutionTimeoutEnabled(boolean value)</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="execution-isolation-thread-interruptOnTimeout"><a href="#execution-isolation-thread-interruptOnTimeout" class="headerlink" title="execution.isolation.thread.interruptOnTimeout"></a>execution.isolation.thread.interruptOnTimeout</h4><p>这个属性指示<code>HystrixCommand.run()</code>执行是否应该在发生超时时被中断。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>true</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.execution.isolation.thread.interruptOnTimeout</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.execution.isolation.thread.interruptOnTimeout</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withExecutionIsolationThreadInterruptOnTimeout(boolean value)</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="execution-isolation-thread-interruptOnCancel"><a href="#execution-isolation-thread-interruptOnCancel" class="headerlink" title="execution.isolation.thread.interruptOnCancel"></a>execution.isolation.thread.interruptOnCancel</h4><p>这个属性指示<code>HystrixCommand.run()</code>执行是否应该在发生取消时被中断。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>false</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.execution.isolation.thread.interruptOnCancel</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.execution.isolation.thread.interruptOnCancel</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withExecutionIsolationThreadInterruptOnCancel(boolean value)</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="execution-isolation-semaphore-maxConcurrentRequests"><a href="#execution-isolation-semaphore-maxConcurrentRequests" class="headerlink" title="execution.isolation.semaphore.maxConcurrentRequests"></a>execution.isolation.semaphore.maxConcurrentRequests</h4><p>当您使用<code>ExecutionIsolationStrategy.SEMAPHORE</code>时，此属性设置允许<code>HystrixCommand.run()</code>方法的最大请求数。 </p>
+<p>如果达到这个最大并发限制，则后续请求将被拒绝。</p>
+<p>当你选择一个信号量时，你使用的逻辑基本上和你选择线程池中添加多少个线程相同，但是信号量的开销要小得多，通常执行速度要快得多（亚毫秒） ，否则你会使用线程。 </p>
+<blockquote>
+<p>例如，5000rps的单个实例在内存中查找指标聚集仅需要2个信号量就能工作。</p>
+</blockquote>
+<p>隔离原理仍然是相同的，所以信号量应该仍然是整个容器（如：Tomcat）线程池的一小部分，而不是全部或大部分，否则它不提供保护。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>10</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.execution.isolation.semaphore.maxConcurrentRequests</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.execution.isolation.semaphore.maxConcurrentRequests</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withExecutionIsolationSemaphoreMaxConcurrentRequests(int value)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="回退（Fallback）"><a href="#回退（Fallback）" class="headerlink" title="回退（Fallback）"></a>回退（Fallback）</h3><p>以下属性控制<code>HystrixCommand.getFallback()</code>如何执行。这些属性适用于<code>ExecutionIsolationStrategy.THREAD</code>和<code>ExecutionIsolationStrategy.SEMAPHORE</code>。</p>
+<h4 id="fallback-isolation-semaphore-maxConcurrentRequests"><a href="#fallback-isolation-semaphore-maxConcurrentRequests" class="headerlink" title="fallback.isolation.semaphore.maxConcurrentRequests"></a>fallback.isolation.semaphore.maxConcurrentRequests</h4><p>该属性设置<code>HystrixCommand.getFallback()</code>方法允许从调用线程中创建的最大请求数。</p>
+<p>如果达到最大并发限制，则随后的请求将被拒绝并抛出异常，因为没有回退被提取到。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>10</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.fallback.isolation.semaphore.maxConcurrentRequests</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.fallback.isolation.semaphore.maxConcurrentRequests</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withFallbackIsolationSemaphoreMaxConcurrentRequests(int value)</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="fallback-enabled"><a href="#fallback-enabled" class="headerlink" title="fallback.enabled"></a>fallback.enabled</h4><p>Since: 1.2</p>
+<p>该属性设置是否在发生故障或拒绝时尝试调用<code>HystrixCommand.getFallback()</code>。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>true</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.fallback.enabled</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.fallback.enabled</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withFallbackEnabled(boolean value)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="断路器（Circuit-Breaker）"><a href="#断路器（Circuit-Breaker）" class="headerlink" title="断路器（Circuit Breaker）"></a>断路器（Circuit Breaker）</h3><p>断路器属性控制<code>HystrixCircuitBreaker</code>的行为。</p>
+<h4 id="circuitBreaker-enabled"><a href="#circuitBreaker-enabled" class="headerlink" title="circuitBreaker.enabled"></a>circuitBreaker.enabled</h4><p>该属性设置是否将使用断路器来跟踪健康状况并且如果断路器跳闸则将其短路。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>true</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.circuitBreaker.enabled</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.circuitBreaker.enabled</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withCircuitBreakerEnabled(boolean value)</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="circuitBreaker-requestVolumeThreshold"><a href="#circuitBreaker-requestVolumeThreshold" class="headerlink" title="circuitBreaker.requestVolumeThreshold"></a>circuitBreaker.requestVolumeThreshold</h4><p>该属性设置滚动窗口中将使电路跳闸的最小请求数量。 </p>
+<p>例如，如果值是20，那么如果在滚动窗口中接收到19个请求（例如10秒的窗口），则即使所有19个请求都失败，电路也不会跳闸。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>20</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.circuitBreaker.requestVolumeThreshold</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.circuitBreaker.requestVolumeThreshold</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withCircuitBreakerRequestVolumeThreshold(int value)</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="circuitBreaker-sleepWindowInMilliseconds"><a href="#circuitBreaker-sleepWindowInMilliseconds" class="headerlink" title="circuitBreaker.sleepWindowInMilliseconds"></a>circuitBreaker.sleepWindowInMilliseconds</h4><p>该属性设置跳闸后的时间量，拒绝请求，然后再次尝试确定电路是否应再次闭合。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>5000</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.circuitBreaker.sleepWindowInMilliseconds</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.circuitBreaker.sleepWindowInMilliseconds</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withCircuitBreakerSleepWindowInMilliseconds(int value)</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="circuitBreaker-errorThresholdPercentage"><a href="#circuitBreaker-errorThresholdPercentage" class="headerlink" title="circuitBreaker.errorThresholdPercentage"></a>circuitBreaker.errorThresholdPercentage</h4><p>该属性设置错误百分比，在该值以上，电路应断开并开始将请求短路到回退逻辑。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>50</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.circuitBreaker.errorThresholdPercentage</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.circuitBreaker.errorThresholdPercentage</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withCircuitBreakerErrorThresholdPercentage(int value)</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="circuitBreaker-forceOpen"><a href="#circuitBreaker-forceOpen" class="headerlink" title="circuitBreaker.forceOpen"></a>circuitBreaker.forceOpen</h4><p>如果该属性为真，则强制断路器进入打开（跳闸）状态，将拒绝所有的请求。</p>
+<p>此属性优先于<code>circuitBreaker.forceClosed</code>。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>false</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.circuitBreaker.forceOpen</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.circuitBreaker.forceOpen</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withCircuitBreakerForceOpen(boolean value)</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="circuitBreaker-forceClosed"><a href="#circuitBreaker-forceClosed" class="headerlink" title="circuitBreaker.forceClosed"></a>circuitBreaker.forceClosed</h4><p>如果该属性为真，则强制断路器进入关闭状态，在该状态下将允许请求，而不管错误百分比如何。 </p>
+<p><code>circuitBreaker.forceOpen</code>属性优先，所以如果它被设置为<code>true</code>，这个属性什么都不做。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>false</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.circuitBreaker.forceClosed</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.circuitBreaker.forceClosed</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withCircuitBreakerForceClosed(boolean value)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="度量（Mitrics）"><a href="#度量（Mitrics）" class="headerlink" title="度量（Mitrics）"></a>度量（Mitrics）</h3><p>以下属性与从<code>HystrixCommand</code>和<code>HystrixObservableCommand</code>执行捕获指标有关。</p>
+<h4 id="metrics-rollingStats-timeInMilliseconds"><a href="#metrics-rollingStats-timeInMilliseconds" class="headerlink" title="metrics.rollingStats.timeInMilliseconds"></a>metrics.rollingStats.timeInMilliseconds</h4><p>该属性设置统计滚动窗口的持续时间，以毫秒为单位。这是Hystrix保持断路器使用和发布指标的时间。 </p>
+<p>从1.4.12开始，此属性仅影响初始度量标准的创建，启动后对此属性所做的调整将不会生效。这样可以避免指标数据丢失，也可以优化指标收集。 </p>
+<p>窗口根据这些增量被分成桶和“卷”。</p>
+<p>例如，如果将此属性设置为10秒（<code>10000</code>），具有十个1秒桶的，则下图显示了如何将新桶和旧桶关闭：</p>
+<p><img src="https://github.com/Netflix/Hystrix/wiki/images/rolling-stats-640.png" alt="rolling-stats"></p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>10000</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.metrics.rollingStats.timeInMilliseconds</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.metrics.rollingStats.timeInMilliseconds</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withMetricsRollingStatisticalWindowInMilliseconds(int value)</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="metrics-rollingStats-numBuckets"><a href="#metrics-rollingStats-numBuckets" class="headerlink" title="metrics.rollingStats.numBuckets"></a>metrics.rollingStats.numBuckets</h4><p>该属性设置滚动统计窗口分成的桶的数量。</p>
+<p><strong>注意：</strong> 必须要确保如下条件： “<code>metrics.rollingStats.timeInMilliseconds ％ metrics.rollingStats.numBuckets == 0</code>” ， 否则会引发异常。 </p>
+<p>换句话说，10000/10是可以的，10000/20也行，但是10000/7不行。</p>
+<p>从1.4.12开始，此属性仅影响初始度量标准的创建，启动后对此属性所做的调整将不会生效。这样可以避免指标数据丢失，也可以优化指标收集。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>10</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>取值范围</strong></td>
+<td style="text-align:left">可以被<code>metric.rollingStats.timeInMilliseconds</code>整除的任何值。结果应该是数百或数千毫秒的桶。大容量的性能还没有测试过小于100ms的桶。</td>
+</tr>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.metrics.rollingStats.numBuckets</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.metrics.rollingStats.numBuckets</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withMetricsRollingStatisticalWindowBuckets(int value)</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="metrics-rollingPercentile-enabled"><a href="#metrics-rollingPercentile-enabled" class="headerlink" title="metrics.rollingPercentile.enabled"></a>metrics.rollingPercentile.enabled</h4><p>这个属性表示执行延迟是否应该跟踪和计算为百分比。如果他们被禁用，则所有汇总统计（平均值，百分位数）返回为-1。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>true</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.metrics.rollingPercentile.enabled</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.metrics.rollingPercentile.enabled</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withMetricsRollingPercentileEnabled(boolean value)</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="metrics-rollingPercentile-timeInMilliseconds"><a href="#metrics-rollingPercentile-timeInMilliseconds" class="headerlink" title="metrics.rollingPercentile.timeInMilliseconds"></a>metrics.rollingPercentile.timeInMilliseconds</h4><p>此属性设置滚动窗口的持续时间，在该窗口中保留执行时间以允许百分数计算（以毫秒为单位）。</p>
+<p> 窗口根据这些增量被分成桶和“卷”。</p>
+<p> 从1.4.12开始，此属性仅影响初始度量标准的创建，启动后对此属性所做的调整将不会生效。这样可以避免指标数据丢失，也可以优化指标收集。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>6000</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.metrics.rollingPercentile.timeInMilliseconds</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.metrics.rollingPercentile.timeInMilliseconds</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withMetricsRollingPercentileWindowInMilliseconds(int value)</code> </td>
+</tr>
+</tbody>
+</table>
+<h4 id="metrics-rollingPercentile-numBuckets"><a href="#metrics-rollingPercentile-numBuckets" class="headerlink" title="metrics.rollingPercentile.numBuckets"></a>metrics.rollingPercentile.numBuckets</h4><p>这个属性设置了<code>rollingPercentile</code>窗口将被分成的桶的数量。</p>
+<p><strong>注意：</strong> 必须要确保如下条件：“<code>metrics.rollingPercentile.timeInMilliseconds ％ metrics.rollingPercentile.numBuckets == 0</code>” ，否则会引发异常。 </p>
+<p>换句话说，60000/6是可以的，60000/60也是可以的，但10000/7不行。 </p>
+<p>从1.4.12开始，此属性仅影响初始度量标准的创建，启动后对此属性所做的调整将不会生效。这样可以避免指标数据丢失，也可以优化指标收集。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>6</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>取值范围</strong></td>
+<td style="text-align:left">可以被<code>metric.rollingPercentile.timeInMilliseconds</code>整除的任何值。结果应该是数千毫秒的桶。大容量的性能还没有测试过小于1000ms的桶。</td>
+</tr>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.metrics.rollingPercentile.numBuckets</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.metrics.rollingPercentile.numBuckets</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withMetricsRollingPercentileWindowBuckets(int value)</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="metrics-rollingPercentile-bucketSize"><a href="#metrics-rollingPercentile-bucketSize" class="headerlink" title="metrics.rollingPercentile.bucketSize"></a>metrics.rollingPercentile.bucketSize</h4><p>该属性设置每个桶的最大执行次数。如果更多的执行在此期间发生，他们将环绕并开始在桶的开头重写。 </p>
+<p>例如，如果桶大小设置为100，并桶的窗口为10秒，但是在此期间发生500次执行，则只有最后100次执行将保留在该10秒的桶中。 </p>
+<p>如果增加这个大小，这也增加了存储值所需的内存量，并增加了对列表进行排序以进行百分比计算所需的时间。 </p>
+<p>从1.4.12开始，此属性仅影响初始度量标准的创建，启动后对此属性所做的调整将不会生效。这样可以避免指标数据丢失，也可以优化指标收集。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>100</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.metrics.rollingPercentile.bucketSize</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.metrics.rollingPercentile.bucketSize</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withMetricsRollingPercentileBucketSize(int value)</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="metrics-healthSnapshot-intervalInMilliseconds"><a href="#metrics-healthSnapshot-intervalInMilliseconds" class="headerlink" title="metrics.healthSnapshot.intervalInMilliseconds"></a>metrics.healthSnapshot.intervalInMilliseconds</h4><p>此属性设置允许执行运行成功和错误百分比并影响断路器状态的健康快照之间等待的时间（以毫秒为单位）。 </p>
+<p>在大容量的电路上，连续计算误差百分比可能会成为CPU密集型的，因此这个属性允许你控制计算的频率。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>500</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.metrics.healthSnapshot.intervalInMilliseconds</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.metrics.healthSnapshot.intervalInMilliseconds</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withMetricsHealthSnapshotIntervalInMilliseconds(int value)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="请求上下文（Request-Context）"><a href="#请求上下文（Request-Context）" class="headerlink" title="请求上下文（Request Context）"></a>请求上下文（Request Context）</h3><p>这些属性涉及<code>HystrixCommand</code>使用<a href="http://netflix.github.com/Hystrix/javadoc/index.html?com/netflix/hystrix/strategy/concurrency/HystrixRequestContext.html" target="_blank" rel="noopener">HystrixRequestContext</a>功能。</p>
+<h4 id="requestCache-enabled"><a href="#requestCache-enabled" class="headerlink" title="requestCache.enabled"></a>requestCache.enabled</h4><p>此属性指示<a href="http://netflix.github.io/Hystrix/javadoc/com/netflix/hystrix/HystrixCommand.html#getCacheKey(" target="_blank" rel="noopener">HystrixCommand.getCacheKey()</a>)是否应与<a href="http://netflix.github.io/Hystrix/javadoc/index.html?com/netflix/hystrix/HystrixRequestCache.html" target="_blank" rel="noopener">HystrixRequestCache</a>一起使用，以通过请求范围缓存提供重复数据删除功能。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>true</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.requestCache.enabled</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.requestCache.enabled</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withRequestCacheEnabled(boolean value)</code></td>
+</tr>
+</tbody>
+</table>
+<h4 id="requestLog-enabled"><a href="#requestLog-enabled" class="headerlink" title="requestLog.enabled"></a>requestLog.enabled</h4><p>此属性指示是否应将<code>HystrixCommand</code>执行和事件记录到<a href="http://netflix.github.io/Hystrix/javadoc/index.html?com/netflix/hystrix/HystrixRequestLog.html" target="_blank" rel="noopener">HystrixRequestLog</a></p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>true</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.default.requestLog.enabled</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.command.HystrixCommandKey.requestLog.enabled</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCommandProperties.Setter().withRequestLogEnabled(boolean value)</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="破裂器属性（Collapser-Properties）"><a href="#破裂器属性（Collapser-Properties）" class="headerlink" title="破裂器属性（Collapser Properties）"></a>破裂器属性（Collapser Properties）</h2><p>以下属性控制<a href="http://netflix.github.io/Hystrix/javadoc/index.html?com/netflix/hystrix/HystrixCollapser.html" target="_blank" rel="noopener">HystrixCollapser</a>行为。</p>
+<h3 id="maxRequestsInBatch"><a href="#maxRequestsInBatch" class="headerlink" title="maxRequestsInBatch"></a>maxRequestsInBatch</h3><p>此属性设置批处理允许的最大请求数量，然后触发批处理执行。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>Integer.MAX_VALUE</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.collapser.default.maxRequestsInBatch</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.collapser.HystrixCollapserKey.maxRequestsInBatch</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCollapserProperties.Setter().withMaxRequestsInBatch(int value)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="timerDelayInMilliseconds"><a href="#timerDelayInMilliseconds" class="headerlink" title="timerDelayInMilliseconds"></a>timerDelayInMilliseconds</h3><p>此属性设置触发执行之后创建批处理的毫秒数。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>10</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.collapser.default.timerDelayInMilliseconds</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.collapser.HystrixCollapserKey.timerDelayInMilliseconds</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCollapserProperties.Setter().withTimerDelayInMilliseconds(int value)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="requestCache-enabled-1"><a href="#requestCache-enabled-1" class="headerlink" title="requestCache.enabled"></a>requestCache.enabled</h3><p>此属性指示是否为<a href="http://netflix.github.io/Hystrix/javadoc/com/netflix/hystrix/HystrixCollapser.html#execute--" target="_blank" rel="noopener">HystrixCollapser.execute()</a>和<a href="http://netflix.github.io/Hystrix/javadoc/com/netflix/hystrix/HystrixCollapser.html#queue--" target="_blank" rel="noopener">HystrixCollapser.queue()</a>调用启用了请求缓存。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>true</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.collapser.default.requestCache.enabled</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.collapser.HystrixCommandKey.requestCache.enabled</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixCollapserProperties.Setter().withRequestCacheEnabled(boolean value)</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="线程池属性（Thread-Pool-Properties）"><a href="#线程池属性（Thread-Pool-Properties）" class="headerlink" title="线程池属性（Thread Pool Properties）"></a>线程池属性（Thread Pool Properties）</h2><p>以下属性控制Hystrix命令执行的线程池的行为。请注意，这些名称与<a href="https://docs.oracle.com/javase/8/docs/api/java/util/concurrent/ThreadPoolExecutor.html" target="_blank" rel="noopener">ThreadPoolExecutor Javadoc</a>中的名称相匹配</p>
+<p>大多数情况下，10个线程的默认值都可以（通常可以做得更小）。 </p>
+<p>要确定是否需要更大，计算大小的基本公式是： </p>
+<p><em>在健康时每秒的请求高峰数 × 99%的延迟秒数+一些喘息的空间时。</em></p>
+<p>看下面的例子，看看这个公式是如何实施的。 总体原则是尽可能保持池的小，因为它是减轻负载并防止资源在延迟发生时被阻塞的主要工具。 </p>
+<blockquote>
+<p>Netflix API有30+的线程池被设置为10，两个在20，一个在25。</p>
+</blockquote>
+<p><img src="https://github.com/Netflix/Hystrix/wiki/images/thread-configuration-1280.png" alt="thread-configuration"></p>
+<p>上图显示了一个配置示例，其中依赖关系没有理由达到第99.5百分位，因此它在网络超时层将其缩短，并立即重试，并期望大部分时间会得到中位延迟能够在300ms线程超时内完成这一切。</p>
+<p>如果依赖有合法的理由有时达到99.5％（比如缓存未命中），那么网络超时将被设置得比它高，比如325ms，重试0或1次，线程超时设置更高（350ms + ）。</p>
+<p>线程池的大小为10，以处理第99个百分点请求的突发，但是当一切正常时，此线程池通常在任何给定时间通常只有1或2个线程处于活动状态，以服务大多数40ms的中间调用。</p>
+<p>当你正确地配置它时，<code>HystrixCommand</code>层的超时应该是很少的，但是如果网络等待时间以外的事情影响了时间，或者在最坏的情况下连接+读+重试+连接+读超过配置的整体超时。 </p>
+<p>每个方向的配置和折衷的攻击性对于每个依赖性是不同的。 </p>
+<p>当性能特征发生变化或发现问题时，您可以根据需要实时更改配置，而且如果出现问题或配置错误，则无需关闭整个应用程序。</p>
+<h3 id="coreSize"><a href="#coreSize" class="headerlink" title="coreSize"></a>coreSize</h3><p>此属性设置核心线程数。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>10</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.threadpool.default.coreSize</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.threadpool.HystrixThreadPoolKey.coreSize</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixThreadPoolProperties.Setter().withCoreSize(int value)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="maximumSize"><a href="#maximumSize" class="headerlink" title="maximumSize"></a>maximumSize</h3><p>在<code>1.5.9</code>中添加。该属性设置最大的线程池大小。这是开始无需拒绝<code>HystrixCommand</code>即可支持的最大并发数量。请注意，如果您还设置了<code>allowMaximumSizeToDivergeFromCoreSize</code>，则此设置才会生效。在<code>1.5.9</code>之前，核心和最大大小总是相等的。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>10</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.threadpool.default.maximumSize</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.threadpool.HystrixThreadPoolKey.maximumSize</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixThreadPoolProperties.Setter().withMaximumSize(int value)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="maxQueueSize"><a href="#maxQueueSize" class="headerlink" title="maxQueueSize"></a>maxQueueSize</h3><p>该属性设置<code>BlockingQueue</code>实现的最大队列大小。 </p>
+<p>如果将其设置为<code>-1</code>，则将使用<a href="http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/SynchronousQueue.html" target="_blank" rel="noopener">SynchronousQueue</a>，其它正值将使用<a href="http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/LinkedBlockingQueue.html" target="_blank" rel="noopener">LinkedBlockingQueue</a>。</p>
+<p><strong>注意：</strong> 这个属性只适用于初始化时间，因为如果不重新初始化线程执行器，不支持的队列被调整或改变。 </p>
+<p>如果您需要越过此限制并允许在队列中进行动态更改，请参阅<code>queueSizeRejectionThreshold</code>属性。</p>
+<p>要在<code>SynchronousQueue</code>和<code>LinkedBlockingQueue</code>之间切换，需要重新启动。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>-1</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.threadpool.default.maxQueueSize</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.threadpool.HystrixThreadPoolKey.maxQueueSize</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixThreadPoolProperties.Setter().withMaxQueueSize(int value)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="queueSizeRejectionThreshold"><a href="#queueSizeRejectionThreshold" class="headerlink" title="queueSizeRejectionThreshold"></a>queueSizeRejectionThreshold</h3><p>此属性设置队列大小拒绝阈值 —— 即使<code>maxQueueSize</code>尚未达到，拒绝将发生的人为最大队列大小。此属性的存在是因为<a href="http://docs.oracle.com/javase/6/docs/api/java/util/concurrent/BlockingQueue.html" target="_blank" rel="noopener">BlockingQueue</a>的<code>maxQueueSize</code>不能动态更改，我们希望允许您动态更改影响拒绝的队列大小。 </p>
+<p>当排队一个线程执行时，<code>HystrixCommand</code>使用它。 </p>
+<p><strong>注意：</strong> 如果<code>maxQueueSize == -1</code>，则此属性不适用。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>5</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.threadpool.default.queueSizeRejectionThreshold</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.threadpool.HystrixThreadPoolKey.queueSizeRejectionThreshold</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixThreadPoolProperties.Setter().withQueueSizeRejectionThreshold(int value)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="keepAliveTimeMinutes"><a href="#keepAliveTimeMinutes" class="headerlink" title="keepAliveTimeMinutes"></a>keepAliveTimeMinutes</h3><p>该属性设置保持活动时间，以分钟为单位。 在<code>1.5.9</code>之前，所有线程池都是固定大小的，如<code>coreSize == maximumSize</code>。在<code>1.5.9</code>之后，将<code>allowMaximumSizeToDivergeFromCoreSize</code>设置为<code>true</code>允许这两个值发散，以便线程池可以获取/释放线程。如果<code>coreSize &lt;maximumSize</code>，那么这个属性控制一个线程在被释放之前将不被使用的时间。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>1</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.threadpool.default.keepAliveTimeMinutes</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.threadpool.HystrixThreadPoolKey.keepAliveTimeMinutes</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixThreadPoolProperties.Setter().withKeepAliveTimeMinutes(int value)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="allowMaximumSizeToDivergeFromCoreSize"><a href="#allowMaximumSizeToDivergeFromCoreSize" class="headerlink" title="allowMaximumSizeToDivergeFromCoreSize"></a>allowMaximumSizeToDivergeFromCoreSize</h3><p>在<code>1.5.9</code>中添加。此属性允许<code>maximumSize</code>的配置生效。该值可以等于或高于<code>coreSize</code>。设置<code>coreSize &lt;maximumSize</code>会创建一个线程池，它可以支持<code>maximumSize</code>并发性，但是会在相对不活动的时间内将线程返回给系统。 （以<code>keepAliveTimeInMinutes</code>为准）</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>false</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.threadpool.default.allowMaximumSizeToDivergeFromCoreSize</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.threadpool.HystrixThreadPoolKey.allowMaximumSizeToDivergeFromCoreSize</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixThreadPoolProperties.Setter().withAllowMaximumSizeToDivergeFromCoreSize(boolean value)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="metrics-rollingStats-timeInMilliseconds-1"><a href="#metrics-rollingStats-timeInMilliseconds-1" class="headerlink" title="metrics.rollingStats.timeInMilliseconds"></a>metrics.rollingStats.timeInMilliseconds</h3><p>该属性设置统计滚动窗口的持续时间，以毫秒为单位。这是为线程池保留多长时间的指标。</p>
+<p>窗口根据这些增量被分成桶和“卷”。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>10000</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.threadpool.default..metrics.rollingStats.timeInMilliseconds</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.threadpool.HystrixThreadPoolKey.metrics.rollingStats.timeInMilliseconds</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixThreadPoolProperties.Setter().withMetricsRollingStatisticalWindowInMilliseconds(int value)</code></td>
+</tr>
+</tbody>
+</table>
+<h3 id="metrics-rollingStats-numBuckets-1"><a href="#metrics-rollingStats-numBuckets-1" class="headerlink" title="metrics.rollingStats.numBuckets"></a>metrics.rollingStats.numBuckets</h3><p>该属性设置滚动统计窗口分成的桶的数量。 </p>
+<p><strong>注意：</strong> 必须要确保如下条件：“<code>metrics.rollingStats.timeInMilliseconds ％ metrics.rollingStats.numBuckets == 0</code>” ，否则会引发异常。</p>
+<p>换句话说，10000/10是可以的，10000/20也可以，但是10000/7不行。</p>
+<table>
+<thead>
+<tr>
+<th>默认值</th>
+<th style="text-align:left"><code>10</code></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td><strong>取值范围</strong></td>
+<td style="text-align:left">能被<code>metrics.rollingStats.timeInMilliseconds</code>整除的任何值，结果应该是数百或数千毫秒的桶。大容量的性能还没有测试过小于100ms的桶。</td>
+</tr>
+<tr>
+<td><strong>默认属性</strong></td>
+<td style="text-align:left"><code>hystrix.threadpool.default.metrics.rollingStats.numBuckets</code></td>
+</tr>
+<tr>
+<td><strong>实例属性</strong></td>
+<td style="text-align:left"><code>hystrix.threadpool.HystrixThreadPoolKey.metrics.rollingStats.numBuckets</code></td>
+</tr>
+<tr>
+<td><strong>如何设置<br>默认实例</strong></td>
+<td style="text-align:left"><code>HystrixThreadPoolProperties.Setter().withMetricsRollingStatisticalWindowBuckets(int value)</code></td>
+</tr>
+</tbody>
+</table>
+<h2 id="参考资料"><a href="#参考资料" class="headerlink" title="参考资料"></a>参考资料</h2><p><a href="https://github.com/Netflix/Hystrix/wiki/Configuration" target="_blank" rel="noopener">https://github.com/Netflix/Hystrix/wiki/Configuration</a></p>
+<style>table th:first-of-type{width:80px}</style>
+      
+    </div>
+    
+    
+    
+
+    
+
+    
+      <div>
+        <div style="padding:10px 0;margin:20px auto;width:90%;text-align:center">
+  <div>坚持原创分享，您的支持将鼓励我继续创作！</div>
+  <button id="rewardButton" disable="enable" onclick='var qr=document.getElementById("QR");"none"===qr.style.display?qr.style.display="block":qr.style.display="none"'>
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display:none">
+
+    
+      <div id="wechat" style="display:inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.jpg" alt="Angus_Lu 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display:inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="Angus_Lu 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    Angus_Lu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://zyouwei.com/技术笔记/Java/Hystrix-configuration.html" title="Hystrix 配置属性参考">http://zyouwei.com/技术笔记/Java/Hystrix-configuration.html</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/java/" rel="tag"># java</a>
+          
+            <a href="/tags/hystrix/" rel="tag"># hystrix</a>
+          
+            <a href="/tags/微服务/" rel="tag"># 微服务</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/技术笔记/工具类/MacOs-install-opencv.html" rel="next" title="MacOS下基于Python2.7安装OpenCV3">
+                <i class="fa fa-chevron-left"></i> MacOS下基于Python2.7安装OpenCV3
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="Angus_Lu">
+            
+              <p class="site-author-name" itemprop="name">Angus_Lu</p>
+              <p class="site-description motion-element" itemprop="description">来自阿叩的工作、生活杂记</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/index.html">
+              
+                  <span class="site-state-item-count">5</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">3</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">9</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/aqlu" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:angus.aqlu@gmail.com" target="_blank" title="E-Mail">
+                    
+                      <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.weibo.com/u/2139905947" target="_blank" title="微博">
+                    
+                      <i class="fa fa-fw fa-weibo"></i>微博</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/angus-lu" target="_blank" title="知乎">
+                    
+                      <i class="fa fa-fw fa-link"></i>知乎</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#介绍"><span class="nav-number">1.</span> <span class="nav-text">介绍</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#命令属性（Command-Properties）"><span class="nav-number">2.</span> <span class="nav-text">命令属性（Command Properties）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#执行（Execution）"><span class="nav-number">2.1.</span> <span class="nav-text">执行（Execution）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#execution-isolation-strategy"><span class="nav-number">2.1.1.</span> <span class="nav-text">execution.isolation.strategy</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#execution-isolation-thread-timeoutInMilliseconds"><span class="nav-number">2.1.2.</span> <span class="nav-text">execution.isolation.thread.timeoutInMilliseconds</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#execution-timeout-enabled"><span class="nav-number">2.1.3.</span> <span class="nav-text">execution.timeout.enabled</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#execution-isolation-thread-interruptOnTimeout"><span class="nav-number">2.1.4.</span> <span class="nav-text">execution.isolation.thread.interruptOnTimeout</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#execution-isolation-thread-interruptOnCancel"><span class="nav-number">2.1.5.</span> <span class="nav-text">execution.isolation.thread.interruptOnCancel</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#execution-isolation-semaphore-maxConcurrentRequests"><span class="nav-number">2.1.6.</span> <span class="nav-text">execution.isolation.semaphore.maxConcurrentRequests</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#回退（Fallback）"><span class="nav-number">2.2.</span> <span class="nav-text">回退（Fallback）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#fallback-isolation-semaphore-maxConcurrentRequests"><span class="nav-number">2.2.1.</span> <span class="nav-text">fallback.isolation.semaphore.maxConcurrentRequests</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#fallback-enabled"><span class="nav-number">2.2.2.</span> <span class="nav-text">fallback.enabled</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#断路器（Circuit-Breaker）"><span class="nav-number">2.3.</span> <span class="nav-text">断路器（Circuit Breaker）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#circuitBreaker-enabled"><span class="nav-number">2.3.1.</span> <span class="nav-text">circuitBreaker.enabled</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#circuitBreaker-requestVolumeThreshold"><span class="nav-number">2.3.2.</span> <span class="nav-text">circuitBreaker.requestVolumeThreshold</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#circuitBreaker-sleepWindowInMilliseconds"><span class="nav-number">2.3.3.</span> <span class="nav-text">circuitBreaker.sleepWindowInMilliseconds</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#circuitBreaker-errorThresholdPercentage"><span class="nav-number">2.3.4.</span> <span class="nav-text">circuitBreaker.errorThresholdPercentage</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#circuitBreaker-forceOpen"><span class="nav-number">2.3.5.</span> <span class="nav-text">circuitBreaker.forceOpen</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#circuitBreaker-forceClosed"><span class="nav-number">2.3.6.</span> <span class="nav-text">circuitBreaker.forceClosed</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#度量（Mitrics）"><span class="nav-number">2.4.</span> <span class="nav-text">度量（Mitrics）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#metrics-rollingStats-timeInMilliseconds"><span class="nav-number">2.4.1.</span> <span class="nav-text">metrics.rollingStats.timeInMilliseconds</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#metrics-rollingStats-numBuckets"><span class="nav-number">2.4.2.</span> <span class="nav-text">metrics.rollingStats.numBuckets</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#metrics-rollingPercentile-enabled"><span class="nav-number">2.4.3.</span> <span class="nav-text">metrics.rollingPercentile.enabled</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#metrics-rollingPercentile-timeInMilliseconds"><span class="nav-number">2.4.4.</span> <span class="nav-text">metrics.rollingPercentile.timeInMilliseconds</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#metrics-rollingPercentile-numBuckets"><span class="nav-number">2.4.5.</span> <span class="nav-text">metrics.rollingPercentile.numBuckets</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#metrics-rollingPercentile-bucketSize"><span class="nav-number">2.4.6.</span> <span class="nav-text">metrics.rollingPercentile.bucketSize</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#metrics-healthSnapshot-intervalInMilliseconds"><span class="nav-number">2.4.7.</span> <span class="nav-text">metrics.healthSnapshot.intervalInMilliseconds</span></a></li></ol></li><li class="nav-item nav-level-3"><a class="nav-link" href="#请求上下文（Request-Context）"><span class="nav-number">2.5.</span> <span class="nav-text">请求上下文（Request Context）</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#requestCache-enabled"><span class="nav-number">2.5.1.</span> <span class="nav-text">requestCache.enabled</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#requestLog-enabled"><span class="nav-number">2.5.2.</span> <span class="nav-text">requestLog.enabled</span></a></li></ol></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#破裂器属性（Collapser-Properties）"><span class="nav-number">3.</span> <span class="nav-text">破裂器属性（Collapser Properties）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#maxRequestsInBatch"><span class="nav-number">3.1.</span> <span class="nav-text">maxRequestsInBatch</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#timerDelayInMilliseconds"><span class="nav-number">3.2.</span> <span class="nav-text">timerDelayInMilliseconds</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#requestCache-enabled-1"><span class="nav-number">3.3.</span> <span class="nav-text">requestCache.enabled</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#线程池属性（Thread-Pool-Properties）"><span class="nav-number">4.</span> <span class="nav-text">线程池属性（Thread Pool Properties）</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#coreSize"><span class="nav-number">4.1.</span> <span class="nav-text">coreSize</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#maximumSize"><span class="nav-number">4.2.</span> <span class="nav-text">maximumSize</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#maxQueueSize"><span class="nav-number">4.3.</span> <span class="nav-text">maxQueueSize</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#queueSizeRejectionThreshold"><span class="nav-number">4.4.</span> <span class="nav-text">queueSizeRejectionThreshold</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#keepAliveTimeMinutes"><span class="nav-number">4.5.</span> <span class="nav-text">keepAliveTimeMinutes</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#allowMaximumSizeToDivergeFromCoreSize"><span class="nav-number">4.6.</span> <span class="nav-text">allowMaximumSizeToDivergeFromCoreSize</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#metrics-rollingStats-timeInMilliseconds-1"><span class="nav-number">4.7.</span> <span class="nav-text">metrics.rollingStats.timeInMilliseconds</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#metrics-rollingStats-numBuckets-1"><span class="nav-number">4.8.</span> <span class="nav-text">metrics.rollingStats.numBuckets</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#参考资料"><span class="nav-number">5.</span> <span class="nav-text">参考资料</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2017 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Angus_Lu</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">"[object Function]"!==Object.prototype.toString.call(window.Promise)&&(window.Promise=null)</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://aqlu.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">var disqus_config=function(){this.page.url="http://zyouwei.com/技术笔记/Java/Hystrix-configuration.html",this.page.identifier="技术笔记/Java/Hystrix-configuration.html",this.page.title="Hystrix 配置属性参考"},d=document,s=d.createElement("script");s.src="https://aqlu.disqus.com/embed.js",s.setAttribute("data-timestamp",""+ +new Date),(d.head||d.body).appendChild(s)</script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">function proceedsearch(){$("body").append('<div class="search-popup-overlay local-search-pop-overlay"></div>').css("overflow","hidden"),$(".search-popup-overlay").click(onPopupClose),$(".popup").toggle();var t=$("#local-search-input");t.attr("autocapitalize","none"),t.attr("autocorrect","off"),t.focus()}var isfetched=!1,isXml=!0,search_path="search.xml";0===search_path.length?search_path="search.xml":/json$/i.test(search_path)&&(isXml=!1);var path="/"+search_path,onPopupClose=function(t){$(".popup").hide(),$("#local-search-input").val(""),$(".search-result-list").remove(),$("#no-result").remove(),$(".local-search-pop-overlay").remove(),$("body").css("overflow","")},searchFunc=function(t,e,o){"use strict";$("body").append('<div class="search-popup-overlay local-search-pop-overlay"><div id="search-loading-icon"><i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i></div></div>').css("overflow","hidden"),$("#search-loading-icon").css("margin","20% auto 0 auto").css("text-align","center"),$.ajax({url:t,dataType:isXml?"xml":"json",async:!0,success:function(t){isfetched=!0,$(".popup").detach().appendTo(".header-inner");var n=isXml?$("entry",t).map(function(){return{title:$("title",this).text(),content:$("content",this).text(),url:$("url",this).text()}}).get():t,r=document.getElementById(e),s=document.getElementById(o),a=function(){var t=r.value.trim().toLowerCase(),e=t.split(/[\s\-]+/);e.length>1&&e.push(t);var o=[];if(t.length>0&&n.forEach(function(n){var r=!1,s=0,a=0,i=n.title.trim(),c=i.toLowerCase(),l=n.content.trim().replace(/<[^>]+>/g,""),h=l.toLowerCase(),p=decodeURIComponent(n.url),u=[],f=[];if(""!=i&&(e.forEach(function(t){function e(t,e,o){var n=t.length;if(0===n)return[];var r=0,s=[],a=[];for(o||(e=e.toLowerCase(),t=t.toLowerCase());(s=e.indexOf(t,r))>-1;)a.push({position:s,word:t}),r=s+n;return a}u=u.concat(e(t,c,!1)),f=f.concat(e(t,h,!1))}),(u.length>0||f.length>0)&&(r=!0,s=u.length+f.length)),r){[u,f].forEach(function(t){t.sort(function(t,e){return e.position!==t.position?e.position-t.position:t.word.length-e.word.length})});function d(e,o,n,r){for(var s=r[r.length-1],i=s.position,c=s.word,l=[],h=0;i+c.length<=n&&0!=r.length;){c===t&&h++,l.push({position:i,length:c.length});var p=i+c.length;for(r.pop();0!=r.length&&(s=r[r.length-1],i=s.position,c=s.word,p>i);)r.pop()}return a+=h,{hits:l,start:o,end:n,searchTextCount:h}}var g=[];0!=u.length&&g.push(d(0,0,i.length,u));for(var v=[];0!=f.length;){var $=f[f.length-1],C=$.position,m=$.word,x=C-20,w=C+80;x<0&&(x=0),w<C+m.length&&(w=C+m.length),w>l.length&&(w=l.length),v.push(d(0,x,w,f))}v.sort(function(t,e){return t.searchTextCount!==e.searchTextCount?e.searchTextCount-t.searchTextCount:t.hits.length!==e.hits.length?e.hits.length-t.hits.length:t.start-e.start});var y=parseInt("1");y>=0&&(v=v.slice(0,y));function T(t,e){var o="",n=e.start;return e.hits.forEach(function(e){o+=t.substring(n,e.position);var r=e.position+e.length;o+='<b class="search-keyword">'+t.substring(e.position,r)+"</b>",n=r}),o+=t.substring(n,e.end)}var b="";0!=g.length?b+="<li><a href='"+p+"' class='search-result-title'>"+T(i,g[0])+"</a>":b+="<li><a href='"+p+"' class='search-result-title'>"+i+"</a>",v.forEach(function(t){b+="<a href='"+p+'\'><p class="search-result">'+T(l,t)+"...</p></a>"}),b+="</li>",o.push({item:b,searchTextCount:a,hitCount:s,id:o.length})}}),1===e.length&&""===e[0])s.innerHTML='<div id="no-result"><i class="fa fa-search fa-5x" /></div>';else if(0===o.length)s.innerHTML='<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>';else{o.sort(function(t,e){return t.searchTextCount!==e.searchTextCount?e.searchTextCount-t.searchTextCount:t.hitCount!==e.hitCount?e.hitCount-t.hitCount:e.id-t.id});var a='<ul class="search-result-list">';o.forEach(function(t){a+=t.item}),a+="</ul>",s.innerHTML=a}};r.addEventListener("input",a),$(".local-search-pop-overlay").remove(),$("body").css("overflow",""),proceedsearch()}})};$(".popup-trigger").click(function(t){t.stopPropagation(),!1===isfetched?searchFunc(path,"local-search-input","local-search-result"):proceedsearch()}),$(".popup-btn-close").click(onPopupClose),$(".popup").click(function(t){t.stopPropagation()}),$(document).on("keyup",function(t){27===t.which&&$(".search-popup").is(":visible")&&onPopupClose()})</script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("tMf81tAkT4e7gxws5dhOydOp-gzGzoHsz","rql0VCiquIrrdHjRcpEAq0oC")</script>
+  <script>function showTime(e){var t=new AV.Query(e),n=[],o=$(".leancloud_visitors");o.each(function(){n.push($(this).attr("id").trim())}),t.containedIn("url",n),t.find().done(function(e){if(0!==e.length){for(c=0;c<e.length;c++){var t=e[c],i=t.get("url"),s=t.get("time"),l=document.getElementById(i);$(l).find(".leancloud-visitors-count").text(s)}for(var c=0;c<n.length;c++){var i=n[c],l=document.getElementById(i),r=$(l).find(".leancloud-visitors-count");""==r.text()&&r.text(0)}}else o.find(".leancloud-visitors-count").text(0)}).fail(function(e,t){console.log("Error: "+t.code+" "+t.message)})}function addCount(e){var t=$(".leancloud_visitors"),n=t.attr("id").trim(),o=t.attr("data-flag-title").trim(),i=new AV.Query(e);i.equalTo("url",n),i.find({success:function(t){if(t.length>0){var i=t[0];i.fetchWhenSave(!0),i.increment("time"),i.save(null,{success:function(e){$(document.getElementById(n)).find(".leancloud-visitors-count").text(e.get("time"))},error:function(e,t){console.log("Failed to save Visitor num, with error message: "+t.message)}})}else{var s=new e,l=new AV.ACL;l.setPublicReadAccess(!0),l.setPublicWriteAccess(!0),s.setACL(l),s.set("title",o),s.set("url",n),s.set("time",1),s.save(null,{success:function(e){$(document.getElementById(n)).find(".leancloud-visitors-count").text(e.get("time"))},error:function(e,t){console.log("Failed to create")}})}},error:function(e){console.log("Error:"+e.code+" "+e.message)}})}$(function(){var e=AV.Object.extend("Counter");1==$(".leancloud_visitors").length?addCount(e):$(".post-title-link").length>1&&showTime(e)})</script></body></html>
