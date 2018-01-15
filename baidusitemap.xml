@@ -4,6 +4,56 @@
 
     
   <url>
+    <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/RocketMQ-Performance-Test.html</loc>
+    <lastmod>2018-01-15T09:58:12.915Z</lastmod>
+    <data>
+        <display>
+        <title>RocketMQ Performance Test</title>
+        <pubTime>2018-01-15T07:45:23.000Z</pubTime>
+        
+        <tag>java</tag>
+         
+        <tag>MQ</tag>
+         
+         
+           
+             
+              <breadCrumb title="技术笔记" url="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/"/>
+          
+             
+              <breadCrumb title="Java" url="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/Java-Memory-Model.html</loc>
+    <lastmod>2018-01-12T08:00:46.918Z</lastmod>
+    <data>
+        <display>
+        <title>JVM内存结构简介</title>
+        <pubTime>2018-01-10T03:34:55.000Z</pubTime>
+        
+        <tag>java</tag>
+         
+        <tag>jvm</tag>
+         
+         
+           
+             
+              <breadCrumb title="技术笔记" url="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/"/>
+          
+             
+              <breadCrumb title="Java" url="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/Hystrix-configuration.html</loc>
     <lastmod>2018-01-05T04:49:05.107Z</lastmod>
     <data>
