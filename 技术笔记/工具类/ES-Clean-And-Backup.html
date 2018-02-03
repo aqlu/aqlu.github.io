@@ -1,0 +1,491 @@
+<!DOCTYPE html><html class="theme-next pisces use-motion" lang="zh-Hans"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><meta name="theme-color" content="#222"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="google-site-verification" content="e5C9WgZeIe_4VjbwMw8xd9XW3lyH1KT6BDpCMj8cEbc"><link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css"><link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css"><link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css"><link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico?v=5.1.3"><meta name="keywords" content="elasticsearch,"><link rel="alternate" href="/atom.xml" title="阿叩·杂记" type="application/atom+xml"><meta name="description" content="按天清理索引1234$ crontab -e## 每日凌晨1点定时删除30天之前的`logstash-YYYY.MM.DD`索引0 1 * * * /home/kibana/indexClean.sh es.zyouwei.com logstash -30"><meta name="keywords" content="elasticsearch"><meta property="og:type" content="article"><meta property="og:title" content="ES日志收集定期清理与备份"><meta property="og:url" content="http://zyouwei.com/技术笔记/工具类/ES-Clean-And-Backup.html"><meta property="og:site_name" content="阿叩·杂记"><meta property="og:description" content="按天清理索引1234$ crontab -e## 每日凌晨1点定时删除30天之前的`logstash-YYYY.MM.DD`索引0 1 * * * /home/kibana/indexClean.sh es.zyouwei.com logstash -30"><meta property="og:locale" content="zh-Hans"><meta property="og:updated_time" content="2018-01-30T02:42:55.750Z"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="ES日志收集定期清理与备份"><meta name="twitter:description" content="按天清理索引1234$ crontab -e## 每日凌晨1点定时删除30天之前的`logstash-YYYY.MM.DD`索引0 1 * * * /home/kibana/indexClean.sh es.zyouwei.com logstash -30"><script type="text/javascript" id="hexo.configurations">var NexT=window.NexT||{},CONFIG={root:"/",scheme:"Pisces",version:"5.1.3",sidebar:{position:"left",display:"post",offset:12,b2t:!1,scrollpercent:!1,onmobile:!1},fancybox:!0,tabs:!0,motion:{enable:!0,async:!1,transition:{post_block:"fadeIn",post_header:"slideDownIn",post_body:"slideDownIn",coll_header:"slideLeftIn",sidebar:"slideUpIn"}},duoshuo:{userId:"0",author:"博主"},algolia:{applicationID:"",apiKey:"",indexName:"",hits:{per_page:10},labels:{input_placeholder:"Search for Posts",hits_empty:"We didn't find any results for the search: ${query}",hits_stats:"${hits} results found in ${time} ms"}}}</script><link rel="canonical" href="http://zyouwei.com/技术笔记/工具类/ES-Clean-And-Backup.html"><title>ES日志收集定期清理与备份 | 阿叩·杂记</title><script>!function(e,a,t,n,g,c,o){e.GoogleAnalyticsObject=g,e.ga=e.ga||function(){(e.ga.q=e.ga.q||[]).push(arguments)},e.ga.l=1*new Date,c=a.createElement(t),o=a.getElementsByTagName(t)[0],c.async=1,c.src="https://www.google-analytics.com/analytics.js",o.parentNode.insertBefore(c,o)}(window,document,"script",0,"ga"),ga("create","UA-61930663-2","auto"),ga("send","pageview")</script><script type="text/javascript">var _hmt=_hmt||[];!function(){var e=document.createElement("script");e.src="https://hm.baidu.com/hm.js?a301e92960569ee5070a81e3ea1c5834";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)}()</script></head><body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans"><div class="container sidebar-position-left page-post-detail"><div class="headband"></div><header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="header-inner"><div class="site-brand-wrapper"><div class="site-meta"><div class="custom-logo-site-title"><a href="/" class="brand" rel="start"><span class="logo-line-before"><i></i></span> <span class="site-title">阿叩·杂记</span> <span class="logo-line-after"><i></i></span></a></div><p class="site-subtitle">学着写博客</p></div><div class="site-nav-toggle"><button><span class="btn-bar"></span> <span class="btn-bar"></span> <span class="btn-bar"></span></button></div></div><nav class="site-nav"><ul id="menu" class="menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i><br>首页</a></li><li class="menu-item menu-item-about"><a href="/about/index.html" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i><br>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/index.html" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i><br>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/index.html" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i><br>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/index.html" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i><br>归档</a></li><li class="menu-item menu-item-sitemap"><a href="/sitemap.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i><br>站点地图</a></li><li class="menu-item menu-item-commonweal"><a href="/404.html" rel="section"><i class="menu-item-icon fa fa-fw fa-heartbeat"></i><br>公益404</a></li><li class="menu-item menu-item-search"><a href="javascript:;" class="popup-trigger"><i class="menu-item-icon fa fa-search fa-fw"></i><br>搜索</a></li></ul><div class="site-search"><div class="popup search-popup local-search-popup"><div class="local-search-header clearfix"><span class="search-icon"><i class="fa fa-search"></i> </span><span class="popup-btn-close"><i class="fa fa-times-circle"></i></span><div class="local-search-input-wrapper"><input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input"></div></div><div id="local-search-result"></div></div></div></nav></div></header><main id="main" class="main"><div class="main-inner"><div class="content-wrap"><div id="content" class="content"><div id="posts" class="posts-expand"><article class="post post-type-normal" itemscope itemtype="http://schema.org/Article"><div class="post-block"><link itemprop="mainEntityOfPage" href="http://zyouwei.com/技术笔记/工具类/ES-Clean-And-Backup.html"><span hidden itemprop="author" itemscope itemtype="http://schema.org/Person"><meta itemprop="name" content="Angus_Lu"><meta itemprop="description" content=""><meta itemprop="image" content="/images/avatar.jpg"></span><span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization"><meta itemprop="name" content="阿叩·杂记"></span><header class="post-header"><h1 class="post-title" itemprop="name headline">ES日志收集定期清理与备份</h1><div class="post-meta"><span class="post-time"><span class="post-meta-item-icon"><i class="fa fa-calendar-check-o"></i> </span><span class="post-meta-item-text">更新于&#58;</span> <time title="更新于" itemprop="dateModified" datetime="2018-01-30T10:42:55+08:00">2018-01-30 10:42:55 </time></span><span class="post-category"><span class="post-meta-divider">|</span> <span class="post-meta-item-icon"><i class="fa fa-folder-o"></i> </span><span class="post-meta-item-text">分类于</span> <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/技术笔记/" itemprop="url" rel="index"><span itemprop="name">技术笔记</span> </a></span>， <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/技术笔记/工具类/" itemprop="url" rel="index"><span itemprop="name">工具类</span> </a></span></span><span class="post-comments-count"><span class="post-meta-divider">|</span> <span class="post-meta-item-icon"><i class="fa fa-comment-o"></i> </span><a href="/技术笔记/工具类/ES-Clean-And-Backup.html#comments" itemprop="discussionUrl"><span class="post-comments-count disqus-comment-count" data-disqus-identifier="技术笔记/工具类/ES-Clean-And-Backup.html" itemprop="commentCount"></span> </a></span><span id="/技术笔记/工具类/ES-Clean-And-Backup.html" class="leancloud_visitors" data-flag-title="ES日志收集定期清理与备份"><span class="post-meta-divider">|</span> <span class="post-meta-item-icon"><i class="fa fa-eye"></i> </span><span class="post-meta-item-text">阅读次数&#58;</span> <span class="leancloud-visitors-count"></span></span></div></header><div class="post-body" itemprop="articleBody"><h2 id="按天清理索引"><a href="#按天清理索引" class="headerlink" title="按天清理索引"></a>按天清理索引</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ crontab -e</span><br><span class="line"></span><br><span class="line"><span class="comment">## 每日凌晨1点定时删除30天之前的`logstash-YYYY.MM.DD`索引</span></span><br><span class="line">0 1 * * * /home/kibana/indexClean.sh es.zyouwei.com logstash -30</span><br></pre></td></tr></table></figure>
+<a id="more"></a>
+<figure class="highlight bash"><figcaption><span>indexClean.sh</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># before $1 day</span></span><br><span class="line">index=<span class="string">"<span class="variable">$2</span>-"</span>`date -d <span class="string">"<span class="variable">$3</span> day "</span> +%Y.%m.%d`</span><br><span class="line"></span><br><span class="line">beginDate=`date <span class="string">"+%Y-%m-%d %H:%M:%S"</span>`</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"<span class="variable">$beginDate</span>: begin to deleting index:  <span class="variable">$index</span>"</span> &gt;&gt; /tmp/indexClean.log</span><br><span class="line"></span><br><span class="line">result=`curl --connect-timeout 10 -m 20 -XDELETE <span class="variable">$1</span>/<span class="variable">$index</span>`</span><br><span class="line"></span><br><span class="line">endDate=`date <span class="string">"+%Y-%m-%d %H:%M:%S"</span>`</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"<span class="variable">$endDate</span>: exec result is : <span class="variable">$result</span>"</span> &gt;&gt; /tmp/indexClean.log</span><br></pre></td></tr></table></figure>
+<h2 id="按天关闭索引"><a href="#按天关闭索引" class="headerlink" title="按天关闭索引"></a>按天关闭索引</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ crontab -e</span><br><span class="line"></span><br><span class="line"><span class="comment">## 每日凌晨1点05分定时关闭7天之前的`logstash-YYYY.MM.DD`索引</span></span><br><span class="line">5 1 * * * /home/kibana/indexClose.sh es.zyouwei.com logstash -7</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><figcaption><span>indexClose.sh</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># before 1 week</span></span><br><span class="line">index=<span class="string">"<span class="variable">$2</span>-"</span>`date -d <span class="string">"<span class="variable">$3</span> day "</span> +%Y.%m.%d`</span><br><span class="line"></span><br><span class="line">beginDate=`date <span class="string">"+%Y-%m-%d %H:%M:%S"</span>`</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"<span class="variable">$beginDate</span>: begin to closing index:  <span class="variable">$index</span>"</span> &gt;&gt; /tmp/indexClose.log</span><br><span class="line"></span><br><span class="line">result=`curl --connect-timeout 10 -m 20 -XPOST <span class="variable">$1</span>/<span class="variable">$index</span>/_close`</span><br><span class="line"></span><br><span class="line">endDate=`date <span class="string">"+%Y-%m-%d %H:%M:%S"</span>`</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"<span class="variable">$endDate</span>: exec result is : <span class="variable">$result</span>"</span> &gt;&gt; /tmp/indexClose.log</span><br></pre></td></tr></table></figure>
+<h2 id="按月清理索引"><a href="#按月清理索引" class="headerlink" title="按月清理索引"></a>按月清理索引</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">$ crontab -e</span><br><span class="line"></span><br><span class="line"><span class="comment">## 每月1号凌晨2点定时删除3月之前的`logstash-srv-YYYY.MM`索引</span></span><br><span class="line">0 2 1 * * /home/kibana/indexCleanByMonth.sh es.zyouwei.com logstash-srv -3</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><figcaption><span>indexCleanByMonth.sh</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">#!/bin/sh</span></span><br><span class="line"></span><br><span class="line"><span class="comment"># before $3 month</span></span><br><span class="line">index=<span class="string">"<span class="variable">$2</span>-"</span>`date -d <span class="string">"<span class="variable">$3</span> month "</span> +%Y.%m`</span><br><span class="line"></span><br><span class="line">beginDate=`date <span class="string">"+%Y-%m-%d %H:%M:%S"</span>`</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"<span class="variable">$beginDate</span>: begin to deleting index:  <span class="variable">$index</span>"</span> &gt;&gt; /tmp/indexCleanByMonth.log</span><br><span class="line"></span><br><span class="line">result=`curl --connect-timeout 10 -m 20 -XDELETE <span class="variable">$1</span>/<span class="variable">$index</span>`</span><br><span class="line"></span><br><span class="line">endDate=`date <span class="string">"+%Y-%m-%d %H:%M:%S"</span>`</span><br><span class="line"><span class="built_in">echo</span> <span class="string">"<span class="variable">$endDate</span>: exec result is : <span class="variable">$result</span>"</span> &gt;&gt; /tmp/indexCleanByMonth.log</span><br></pre></td></tr></table></figure>
+<h2 id="备份索引到其它ES集群"><a href="#备份索引到其它ES集群" class="headerlink" title="备份索引到其它ES集群"></a>备份索引到其它ES集群</h2><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">$ crontab -e</span><br><span class="line">0 3 * * * /home/kibana/indexBackup.sh</span><br></pre></td></tr></table></figure>
+<figure class="highlight bash"><figcaption><span>indexBackup.sh</span></figcaption><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">#!/usr/bin/env python</span></span><br><span class="line"><span class="comment"># -*- coding:utf-8 -*-</span></span><br><span class="line">__author__ = <span class="string">'aqlu'</span></span><br><span class="line"></span><br><span class="line">import urllib2</span><br><span class="line">import json</span><br><span class="line"><span class="comment"># import traceback</span></span><br><span class="line">import logging</span><br><span class="line">import os</span><br><span class="line">from datetime import timedelta, datetime</span><br><span class="line"></span><br><span class="line">logging.basicConfig(filename=os.path.join(os.getcwd(), <span class="string">'indexBackup.log'</span>), level=logging.DEBUG, filemode=<span class="string">'a'</span>,</span><br><span class="line">                    format=<span class="string">'%(asctime)s - %(levelname)s: %(message)s'</span>)</span><br><span class="line"><span class="built_in">log</span> = logging.getLogger(<span class="string">'root'</span>)</span><br><span class="line"></span><br><span class="line"><span class="comment"># noinspection PyBroadException</span></span><br><span class="line">def backup_index(index, src_es_host, dest_es_host, close_index_name):</span><br><span class="line">    snapshot_name = <span class="string">'snapshot-'</span> + index + <span class="string">'_'</span> + datetime.now().strftime(<span class="string">'%Y%m%d-%H%M%S'</span>)</span><br><span class="line"></span><br><span class="line">    <span class="comment"># step.0 validate index</span></span><br><span class="line">    try:</span><br><span class="line">        validate_url = <span class="string">'http://'</span> + src_es_host + <span class="string">'/'</span> + index</span><br><span class="line">        validate_request = urllib2.Request(validate_url)</span><br><span class="line">        validate_request.get_method = lambda: <span class="string">'HEAD'</span></span><br><span class="line">        validate_response = urllib2.urlopen(validate_request)</span><br><span class="line">    except urllib2.HTTPError, e:</span><br><span class="line">        <span class="keyword">if</span> e.code == 404:</span><br><span class="line">            log.info(<span class="string">"index [%s] is not exists"</span>, index)</span><br><span class="line">    <span class="keyword">else</span>:</span><br><span class="line">        <span class="keyword">if</span> validate_response.getcode() == 200:</span><br><span class="line">            <span class="comment"># step.1 backup index</span></span><br><span class="line">            <span class="comment"># print datetime.now().strftime('%Y-%m-%d %H:%M:%S'), ' begin to backup index [', indexName, ']'</span></span><br><span class="line">            log.debug(<span class="string">'begin to backup index ['</span> + index + <span class="string">']'</span>)</span><br><span class="line">            backup_url = <span class="string">'http://'</span> + src_es_host + <span class="string">"/_snapshot/log_backup/"</span> \</span><br><span class="line">                         + snapshot_name + <span class="string">'?wait_for_completion=true'</span></span><br><span class="line">            backup_param = &#123;<span class="string">"indices"</span>: index&#125;</span><br><span class="line"></span><br><span class="line">            try:</span><br><span class="line">                backup_request = urllib2.Request(backup_url, json.dumps(backup_param))</span><br><span class="line">                backup_request.get_method = lambda: <span class="string">'PUT'</span>  <span class="comment"># 设置HTTP的访问方式</span></span><br><span class="line">                backup_response = urllib2.urlopen(backup_request)</span><br><span class="line">                backup_result = json.loads(backup_response.read(), <span class="string">'utf-8'</span>)</span><br><span class="line">            except:</span><br><span class="line">                log.exception(<span class="string">'exception'</span>)</span><br><span class="line">                send_alarm(<span class="string">"告警：备份索引"</span> + index + <span class="string">"异常【xxx】"</span>)</span><br><span class="line">            <span class="keyword">else</span>:</span><br><span class="line">                log.debug(<span class="string">"backup index end. result: %s"</span>, backup_result)</span><br><span class="line"></span><br><span class="line">                <span class="keyword">if</span> backup_result[<span class="string">'snapshot'</span>][<span class="string">'state'</span>] == <span class="string">'SUCCESS'</span>:</span><br><span class="line">                    <span class="comment"># if snapshot success then</span></span><br><span class="line">                    <span class="comment"># step.2 delete index</span></span><br><span class="line">                    log.debug(<span class="string">'begin to delete index ['</span> + index + <span class="string">']'</span>)</span><br><span class="line">                    try:</span><br><span class="line">                        delete_url = <span class="string">'http://'</span> + src_es_host + <span class="string">"/"</span> + index</span><br><span class="line">                        delete_request = urllib2.Request(delete_url)</span><br><span class="line">                        delete_request.get_method = lambda: <span class="string">'DELETE'</span></span><br><span class="line">                        delete_response = urllib2.urlopen(delete_request)</span><br><span class="line">                        delete_result = json.loads(delete_response.read())</span><br><span class="line">                        log.debug(<span class="string">"delete index end. result: %s"</span>, delete_result)</span><br><span class="line">                    except:</span><br><span class="line">                        log.exception(<span class="string">'exception'</span>)</span><br><span class="line">                        send_alarm(<span class="string">"告警：删除索引"</span> + index + <span class="string">"异常【xxx】"</span>)</span><br><span class="line"></span><br><span class="line">                    <span class="comment"># step.3 restore index</span></span><br><span class="line">                    log.debug(<span class="string">'begin to restore snapshot ['</span> + snapshot_name + <span class="string">']'</span>)</span><br><span class="line">                    try:</span><br><span class="line">                        restore_url = <span class="string">'http://'</span> + dest_es_host + <span class="string">'/_snapshot/log_backup/'</span> + snapshot_name \</span><br><span class="line">                                      + <span class="string">'/_restore?wait_for_completion=true'</span></span><br><span class="line">                        restore_request = urllib2.Request(restore_url)</span><br><span class="line">                        restore_request.get_method = lambda: <span class="string">'POST'</span></span><br><span class="line">                        restore_response = urllib2.urlopen(restore_request)</span><br><span class="line">                        restore_result = json.loads(restore_response.read())</span><br><span class="line">                    except:</span><br><span class="line">                        log.exception(<span class="string">'exception'</span>)</span><br><span class="line">                        send_alarm(<span class="string">"告警：还原快照"</span> + snapshot_name + <span class="string">"异常【xxx】"</span>)</span><br><span class="line">                    <span class="keyword">else</span>:</span><br><span class="line">                        log.debug(<span class="string">"restore snapshot end. result: %s"</span>, restore_result)</span><br><span class="line"></span><br><span class="line">                        <span class="keyword">if</span> restore_result[<span class="string">'snapshot'</span>][<span class="string">'shards'</span>][<span class="string">'failed'</span>] == 0:</span><br><span class="line">                            <span class="comment"># if no failed shards then</span></span><br><span class="line">                            <span class="comment"># step.4 delete snapshot</span></span><br><span class="line">                            log.debug(<span class="string">'begin to delete snapshot ['</span> + snapshot_name + <span class="string">']'</span>)</span><br><span class="line">                            try:</span><br><span class="line">                                del_snapshot_url = <span class="string">'http://'</span> + dest_es_host + <span class="string">'/_snapshot/log_backup/'</span> + snapshot_name</span><br><span class="line">                                del_snapshot_request = urllib2.Request(del_snapshot_url)</span><br><span class="line">                                del_snapshot_request.get_method = lambda: <span class="string">'DELETE'</span></span><br><span class="line">                                del_snapshot_response = urllib2.urlopen(del_snapshot_request)</span><br><span class="line">                                del_snapshot_result = json.loads(del_snapshot_response.read())</span><br><span class="line">                                log.debug(<span class="string">"delete snapshot end. result: %s"</span>, del_snapshot_result)</span><br><span class="line"></span><br><span class="line">                                <span class="keyword">if</span> close_index_name</span><br><span class="line">                                    <span class="comment"># close index for before 1 month on backup cluster</span></span><br><span class="line">                                    close_index(close_index_name, dest_es_host)</span><br><span class="line">                            except:</span><br><span class="line">                                log.exception(<span class="string">'exception'</span>)</span><br><span class="line">                                send_alarm(<span class="string">"告警：删除快照"</span> + snapshot_name + <span class="string">"异常【xxx】"</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># noinspection PyBroadException</span></span><br><span class="line">def close_index(index, esHost):</span><br><span class="line">    log.debug(<span class="string">"begin to close index [%s]"</span>, index)</span><br><span class="line">    try:</span><br><span class="line">        url = <span class="string">'http://'</span> + esHost + <span class="string">'/'</span> + index + <span class="string">'/_close'</span></span><br><span class="line">        request = urllib2.Request(url)</span><br><span class="line">        request.get_method = lambda: <span class="string">'POST'</span></span><br><span class="line">        response = urllib2.urlopen(request)</span><br><span class="line">        result = json.loads(response.read())</span><br><span class="line">        log.debug(<span class="string">"close index [%s] end. result: %s"</span>, index, result)</span><br><span class="line">    except:</span><br><span class="line">        log.exception(<span class="string">'exception'</span>)</span><br><span class="line">        send_alarm(<span class="string">"告警：关闭索引"</span> + index + <span class="string">"异常【xxx】"</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="comment"># noinspection PyBroadException</span></span><br><span class="line">def send_alarm(content):</span><br><span class="line">    log.debug(<span class="string">"send sms, content: [%s]"</span>, content)</span><br><span class="line">    try:</span><br><span class="line">        <span class="comment">## TODO implements alarm as sms、call、dingTalk ......</span></span><br><span class="line">        log.debug(<span class="string">"send sms end. result: %s"</span>, result)</span><br><span class="line">    except:</span><br><span class="line">        log.exception(<span class="string">'exception'</span>)</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">before1Week = datetime.now() + timedelta(days=-7)</span><br><span class="line">before1month = datetime.now() + timedelta(days=-30)</span><br><span class="line">indexName = <span class="string">'logstash-'</span> + before1Week.strftime(<span class="string">'%Y.%m.%d'</span>)</span><br><span class="line">closeIndexName = <span class="string">'logstash-'</span> + before1month.strftime(<span class="string">'%Y.%m.%d'</span>)</span><br><span class="line">srcEsHost = <span class="string">'es.zyouwei.com'</span></span><br><span class="line">destEsHost = <span class="string">'es-bak.zyouwei.com'</span></span><br><span class="line"></span><br><span class="line">backup_index(indexName, srcEsHost, destEsHost, closeIndexName)</span><br></pre></td></tr></table></figure>
+      
+    </div>
+    
+    
+    
+
+    
+      <div>
+        <div id="wechat_subscriber" style="display:block;padding:10px 0;margin:20px auto;width:100%;text-align:center">
+    <img id="wechat_subscriber_qcode" src="/images/wechat-myself.jpg" alt="Angus_Lu wechat" style="width:200px;max-width:100%">
+    <div>欢迎添加我的微信号进行交流，请备注：“来自：阿叩·杂记”</div>
+</div>
+
+      </div>
+    
+
+    
+      <div>
+        <div style="padding:10px 0;margin:20px auto;width:90%;text-align:center">
+  <div>坚持原创分享，您的支持将鼓励我继续创作！</div>
+  <button id="rewardButton" disable="enable" onclick='var qr=document.getElementById("QR");"none"===qr.style.display?qr.style.display="block":qr.style.display="none"'>
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display:none">
+
+    
+      <div id="wechat" style="display:inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.jpg" alt="Angus_Lu 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display:inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="Angus_Lu 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    Angus_Lu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://zyouwei.com/技术笔记/工具类/ES-Clean-And-Backup.html" title="ES日志收集定期清理与备份">http://zyouwei.com/技术笔记/工具类/ES-Clean-And-Backup.html</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/elasticsearch/" rel="tag"># elasticsearch</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/技术笔记/大数据/2017-5-Hbase-Deployed.html" rel="next" title="高可用HBASE搭建">
+                <i class="fa fa-chevron-left"></i> 高可用HBASE搭建
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+              <a href="/技术笔记/Java/GraphQL-Introduction-1.html" rel="prev" title="GraphQL入门介绍（一）">
+                GraphQL入门介绍（一） <i class="fa fa-chevron-right"></i>
+              </a>
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="Angus_Lu">
+            
+              <p class="site-author-name" itemprop="name">Angus_Lu</p>
+              <p class="site-description motion-element" itemprop="description">来自阿叩的工作、生活杂记</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/index.html">
+              
+                  <span class="site-state-item-count">11</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/aqlu" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:angus.aqlu@gmail.com" target="_blank" title="E-Mail">
+                    
+                      <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.weibo.com/u/2139905947" target="_blank" title="微博">
+                    
+                      <i class="fa fa-fw fa-weibo"></i>微博</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/angus-lu" target="_blank" title="知乎">
+                    
+                      <i class="fa fa-fw fa-link"></i>知乎</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#按天清理索引"><span class="nav-number">1.</span> <span class="nav-text">按天清理索引</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#按天关闭索引"><span class="nav-number">2.</span> <span class="nav-text">按天关闭索引</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#按月清理索引"><span class="nav-number">3.</span> <span class="nav-text">按月清理索引</span></a></li><li class="nav-item nav-level-2"><a class="nav-link" href="#备份索引到其它ES集群"><span class="nav-number">4.</span> <span class="nav-text">备份索引到其它ES集群</span></a></li></ol></div>
+            
+
+          </div>
+        </section>
+      
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2017 &mdash; <span itemprop="copyrightYear">2018</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Angus_Lu</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">"[object Function]"!==Object.prototype.toString.call(window.Promise)&&(window.Promise=null)</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://aqlu.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">var disqus_config=function(){this.page.url="http://zyouwei.com/技术笔记/工具类/ES-Clean-And-Backup.html",this.page.identifier="技术笔记/工具类/ES-Clean-And-Backup.html",this.page.title="ES日志收集定期清理与备份"},d=document,s=d.createElement("script");s.src="https://aqlu.disqus.com/embed.js",s.setAttribute("data-timestamp",""+ +new Date),(d.head||d.body).appendChild(s)</script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">function proceedsearch(){$("body").append('<div class="search-popup-overlay local-search-pop-overlay"></div>').css("overflow","hidden"),$(".search-popup-overlay").click(onPopupClose),$(".popup").toggle();var t=$("#local-search-input");t.attr("autocapitalize","none"),t.attr("autocorrect","off"),t.focus()}var isfetched=!1,isXml=!0,search_path="search.xml";0===search_path.length?search_path="search.xml":/json$/i.test(search_path)&&(isXml=!1);var path="/"+search_path,onPopupClose=function(t){$(".popup").hide(),$("#local-search-input").val(""),$(".search-result-list").remove(),$("#no-result").remove(),$(".local-search-pop-overlay").remove(),$("body").css("overflow","")},searchFunc=function(t,e,o){"use strict";$("body").append('<div class="search-popup-overlay local-search-pop-overlay"><div id="search-loading-icon"><i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i></div></div>').css("overflow","hidden"),$("#search-loading-icon").css("margin","20% auto 0 auto").css("text-align","center"),$.ajax({url:t,dataType:isXml?"xml":"json",async:!0,success:function(t){isfetched=!0,$(".popup").detach().appendTo(".header-inner");var n=isXml?$("entry",t).map(function(){return{title:$("title",this).text(),content:$("content",this).text(),url:$("url",this).text()}}).get():t,r=document.getElementById(e),s=document.getElementById(o),a=function(){var t=r.value.trim().toLowerCase(),e=t.split(/[\s\-]+/);e.length>1&&e.push(t);var o=[];if(t.length>0&&n.forEach(function(n){var r=!1,s=0,a=0,i=n.title.trim(),c=i.toLowerCase(),l=n.content.trim().replace(/<[^>]+>/g,""),h=l.toLowerCase(),p=decodeURIComponent(n.url),u=[],f=[];if(""!=i&&(e.forEach(function(t){function e(t,e,o){var n=t.length;if(0===n)return[];var r=0,s=[],a=[];for(o||(e=e.toLowerCase(),t=t.toLowerCase());(s=e.indexOf(t,r))>-1;)a.push({position:s,word:t}),r=s+n;return a}u=u.concat(e(t,c,!1)),f=f.concat(e(t,h,!1))}),(u.length>0||f.length>0)&&(r=!0,s=u.length+f.length)),r){[u,f].forEach(function(t){t.sort(function(t,e){return e.position!==t.position?e.position-t.position:t.word.length-e.word.length})});function d(e,o,n,r){for(var s=r[r.length-1],i=s.position,c=s.word,l=[],h=0;i+c.length<=n&&0!=r.length;){c===t&&h++,l.push({position:i,length:c.length});var p=i+c.length;for(r.pop();0!=r.length&&(s=r[r.length-1],i=s.position,c=s.word,p>i);)r.pop()}return a+=h,{hits:l,start:o,end:n,searchTextCount:h}}var g=[];0!=u.length&&g.push(d(0,0,i.length,u));for(var v=[];0!=f.length;){var $=f[f.length-1],C=$.position,m=$.word,x=C-20,w=C+80;x<0&&(x=0),w<C+m.length&&(w=C+m.length),w>l.length&&(w=l.length),v.push(d(0,x,w,f))}v.sort(function(t,e){return t.searchTextCount!==e.searchTextCount?e.searchTextCount-t.searchTextCount:t.hits.length!==e.hits.length?e.hits.length-t.hits.length:t.start-e.start});var y=parseInt("1");y>=0&&(v=v.slice(0,y));function T(t,e){var o="",n=e.start;return e.hits.forEach(function(e){o+=t.substring(n,e.position);var r=e.position+e.length;o+='<b class="search-keyword">'+t.substring(e.position,r)+"</b>",n=r}),o+=t.substring(n,e.end)}var b="";0!=g.length?b+="<li><a href='"+p+"' class='search-result-title'>"+T(i,g[0])+"</a>":b+="<li><a href='"+p+"' class='search-result-title'>"+i+"</a>",v.forEach(function(t){b+="<a href='"+p+'\'><p class="search-result">'+T(l,t)+"...</p></a>"}),b+="</li>",o.push({item:b,searchTextCount:a,hitCount:s,id:o.length})}}),1===e.length&&""===e[0])s.innerHTML='<div id="no-result"><i class="fa fa-search fa-5x" /></div>';else if(0===o.length)s.innerHTML='<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>';else{o.sort(function(t,e){return t.searchTextCount!==e.searchTextCount?e.searchTextCount-t.searchTextCount:t.hitCount!==e.hitCount?e.hitCount-t.hitCount:e.id-t.id});var a='<ul class="search-result-list">';o.forEach(function(t){a+=t.item}),a+="</ul>",s.innerHTML=a}};r.addEventListener("input",a),$(".local-search-pop-overlay").remove(),$("body").css("overflow",""),proceedsearch()}})};$(".popup-trigger").click(function(t){t.stopPropagation(),!1===isfetched?searchFunc(path,"local-search-input","local-search-result"):proceedsearch()}),$(".popup-btn-close").click(onPopupClose),$(".popup").click(function(t){t.stopPropagation()}),$(document).on("keyup",function(t){27===t.which&&$(".search-popup").is(":visible")&&onPopupClose()})</script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("tMf81tAkT4e7gxws5dhOydOp-gzGzoHsz","rql0VCiquIrrdHjRcpEAq0oC")</script>
+  <script>function showTime(e){var t=new AV.Query(e),n=[],o=$(".leancloud_visitors");o.each(function(){n.push($(this).attr("id").trim())}),t.containedIn("url",n),t.find().done(function(e){if(0!==e.length){for(c=0;c<e.length;c++){var t=e[c],i=t.get("url"),s=t.get("time"),l=document.getElementById(i);$(l).find(".leancloud-visitors-count").text(s)}for(var c=0;c<n.length;c++){var i=n[c],l=document.getElementById(i),r=$(l).find(".leancloud-visitors-count");""==r.text()&&r.text(0)}}else o.find(".leancloud-visitors-count").text(0)}).fail(function(e,t){console.log("Error: "+t.code+" "+t.message)})}function addCount(e){var t=$(".leancloud_visitors"),n=t.attr("id").trim(),o=t.attr("data-flag-title").trim(),i=new AV.Query(e);i.equalTo("url",n),i.find({success:function(t){if(t.length>0){var i=t[0];i.fetchWhenSave(!0),i.increment("time"),i.save(null,{success:function(e){$(document.getElementById(n)).find(".leancloud-visitors-count").text(e.get("time"))},error:function(e,t){console.log("Failed to save Visitor num, with error message: "+t.message)}})}else{var s=new e,l=new AV.ACL;l.setPublicReadAccess(!0),l.setPublicWriteAccess(!0),s.setACL(l),s.set("title",o),s.set("url",n),s.set("time",1),s.save(null,{success:function(e){$(document.getElementById(n)).find(".leancloud-visitors-count").text(e.get("time"))},error:function(e,t){console.log("Failed to create")}})}},error:function(e){console.log("Error:"+e.code+" "+e.message)}})}$(function(){var e=AV.Object.extend("Counter");1==$(".leancloud_visitors").length?addCount(e):$(".post-title-link").length>1&&showTime(e)})</script></body></html>

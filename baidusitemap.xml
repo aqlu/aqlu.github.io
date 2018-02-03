@@ -4,6 +4,54 @@
 
     
   <url>
+    <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/GraphQL-Introduction-1.html</loc>
+    <lastmod>2018-01-31T11:39:21.000Z</lastmod>
+    <data>
+        <display>
+        <title>GraphQL入门介绍（一）</title>
+        <pubTime>2018-01-31T11:39:21.000Z</pubTime>
+        
+        <tag>graphql</tag>
+         
+        <tag>微服务</tag>
+         
+         
+           
+             
+              <breadCrumb title="技术笔记" url="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/"/>
+          
+             
+              <breadCrumb title="Java" url="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/%E5%B7%A5%E5%85%B7%E7%B1%BB/ES-Clean-And-Backup.html</loc>
+    <lastmod>2018-01-30T02:42:55.750Z</lastmod>
+    <data>
+        <display>
+        <title>ES日志收集定期清理与备份</title>
+        <pubTime>2018-01-30T11:20:41.000Z</pubTime>
+        
+        <tag>elasticsearch</tag>
+         
+         
+           
+             
+              <breadCrumb title="技术笔记" url="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/"/>
+          
+             
+              <breadCrumb title="工具类" url="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/%E5%B7%A5%E5%85%B7%E7%B1%BB/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/RocketMQ-Performance-Test.html</loc>
     <lastmod>2018-01-15T09:58:12.915Z</lastmod>
     <data>
@@ -63,9 +111,9 @@
         
         <tag>java</tag>
          
-        <tag>hystrix</tag>
-         
         <tag>微服务</tag>
+         
+        <tag>hystrix</tag>
          
          
            
@@ -175,4 +223,54 @@
 
     
     
+    
+  <url>
+    <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/%E5%A4%A7%E6%95%B0%E6%8D%AE/2017-5-Hbase-Deployed.html</loc>
+    <lastmod>2017-05-09T04:15:14.000Z</lastmod>
+    <data>
+        <display>
+        <title>高可用HBASE搭建</title>
+        <pubTime>2018-01-30T11:14:12.000Z</pubTime>
+        
+        <tag>hadoop</tag>
+         
+        <tag>hbase</tag>
+         
+         
+           
+             
+              <breadCrumb title="技术笔记" url="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/"/>
+          
+             
+              <breadCrumb title="大数据" url="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
+    <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/%E5%A4%A7%E6%95%B0%E6%8D%AE/HDFS-Deployed.html</loc>
+    <lastmod>2017-05-08T03:25:41.000Z</lastmod>
+    <data>
+        <display>
+        <title>高可用HDFS搭建</title>
+        <pubTime>2018-01-30T11:12:21.000Z</pubTime>
+        
+        <tag>hadoop</tag>
+         
+        <tag>hdfs</tag>
+         
+         
+           
+             
+              <breadCrumb title="技术笔记" url="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/"/>
+          
+             
+              <breadCrumb title="大数据" url="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/%E5%A4%A7%E6%95%B0%E6%8D%AE/"/>
+          
+        </display>
+    </data>
+    </url>
+
 </urlset>
