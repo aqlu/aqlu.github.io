@@ -3,6 +3,32 @@
 
 
     
+    
+  <url>
+    <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/Abstract-Class-With-Responsebody.html</loc>
+    <lastmod>2018-06-01T02:53:53.000Z</lastmod>
+    <data>
+        <display>
+        <title>Spring MVC中@RequestBody、@ResponseBody如何接收Abstract或Interface类型的参数？</title>
+        <pubTime>2018-06-01T02:53:53.000Z</pubTime>
+        
+        <tag>java</tag>
+         
+        <tag>spring-mvc</tag>
+         
+         
+           
+             
+              <breadCrumb title="技术笔记" url="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/"/>
+          
+             
+              <breadCrumb title="Java" url="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
   <url>
     <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/Redis-ZSET-POP.html</loc>
     <lastmod>2018-05-09T11:50:28.000Z</lastmod>
@@ -229,7 +255,6 @@
     </data>
     </url>
 
-    
     
     
   <url>
