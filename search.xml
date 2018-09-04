@@ -1,6 +1,19 @@
 <?xml version="1.0" encoding="utf-8"?>
 <search>
   <entry>
+    <title><![CDATA[HornetQ引发的一次生产环境故障]]></title>
+    <url>%2F%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0%2FJava%2FA-falut-caused-by-HornetQ.html</url>
+    <content type="text"><![CDATA[前段时间生产环境遇到一次故障，最终分析原因是HornetQ队列空间满造成。HornetQ是JBoss可能旗下的一款MQ产品，现已捐献给了Apache的ActiveMQ。下面将本次故障分析分享给大家，因涉及产品的信息安全问题，本文隐去了某些敏感信息。一、事故现场2018-06-01 运维接收到数据库锁等待的预警以及前台工作站JVM断连的告警，与此同时大量系统用户反馈数据保存失败。运维通过关停服务，kill数据库阻塞会话后重启启动服务，系统得到恢复没有反馈异常。案发现场留存线索有限，事故分析受阻。 2018-07-04 15:30左右，类似“6.1大案”的问题再现。现场项目经理组织运维、开发、迅速到到位，着手恢复业务与问题修复。 二、分析过程从事故现场的分析，得到线索如下：在测试0.36.8(含PDF上传功能版本)时，发现在页面单击保存按钮时，数据库能看到三条锁等待记录；回退x-server版本到0.36.1(PDF上传功能的前一个版本)问题解决；回退到0.36.8(PDF上传功能版本)问题依然存在；故障期间对其中一台x-server的负载做了一个JVM线程堆的dump文件“threaddump-1530705117569.tdump”，同时做了两个JVM CPU的抽样快照。（注：从后续分析看，这条线索非常有价值——VIP线索）分析线索1：第一反应是代码存在bug，在某些诱因下存在并发异常，导致数据库出现死锁。（因为问题是以数据库锁来暴漏出来的，因此把目光盯在了死锁上面，最后从结果来看此处方向走偏了，浪费了一些分析时间）。可是故障期间，为了避免医生在故障之前已打开某功能书写页面且一直没有关闭，可能存在编辑器自动保存的并发问题，运维兄弟关闭了生产站点，重新搭了一台独立站点供排查问题。基于独立的站点保存此数据，线索1的现象会100%的复现。在此之前与运维确认已重启过HornetQ，初步排除了HornetQ故障；运维也重启过数据库，也初步排除数据库故障的可能。是什么样的诱因会一直存在呢？如果是代码存在100%复现的bug，那也不可能从6与1号稳定运行到7月4号。无法得出结论，于是进行其它线索分析。分析线索2：不用思考就能得出一条结论，0.36.8(含PDF上传功能版本)存在bug。可是反过来思考，为什么能稳定运行一个多月不出问题呢？而且生产测试环境也一直没有问题。一定还是存在某种诱因导致的。从0.36.8(PDF上传功能版本)的代码变更内容来看，在数据保存时，新增了JMS消息的发送，数据库mapper层与mybatis的sqlmap文件变化都不大，看不出造成死锁的可能。结合自身之前项目中的一些经验，我还是把第一怀疑放在了JMS消息的发送上面，怀疑网络抖动或HornetQ假死。（从最后结果看，此处是转折点。猜对了第一“嫌疑人”，方向又调整了回来）于是协调运维兄弟在现场测试环境重现问题，尝试关闭测试环境的HornetQ，发现虽然后台保存出现jms异常，但保存正常。尝试通过网络防火墙屏蔽HornetQ端口，数据也依然保存正常。问题复现失败。此时想起之前故障期间有做过JVM线程的dump与CPU的采样，那里面会不会有jms相关的线索呢？分析线索3:通过VisualVM打开线程dump文件，搜索“jms”关键字，发现有个dubbo服务线程在WAITING状态，里面包含了jms相关信息，如下图： 而且从线程的堆栈信息来看，确实是由数据保存时触发。于是马上打开之前的两次CPU采样，查找线程&quot;DubboServerHandler-192.168.125.30:20880-thread-44&quot;的相关信息。 展开其耗时堆栈，堆栈很深，截图关键部位： 发现Semaphore.acquire()的耗时达到了17430ms，已超过了前台数据保存时，dubbo接口调用设置的10秒超时时间，这能解释现场保存数据报错时提示的dubbo超时异常信息。新的疑问又来了：HornetQ客户端在发送消息时，到底在等什么呢？为什么JMS没有结束而数据库里面却有三条锁对象呢？难道是JMS消息发送在数据库事务中？问题一步一步往下分析，分析疑问1：虽然对JMS规范是了然于心，但之前没有使用HornetQ的经验，于是请求Google，搜索“hornetq accquireCredits”: 看到第一条结果的标题立马怦然心动，看来有人也“hang”住过啊。赶紧点开阅读（在此附上文章链接，方便后续读者阅读。https://developer.jboss.org/thread/217626）： 从这篇讨论信息中，得到几个重点信息，HornetQ应该有针对队列有大小控制，超过大小后通过配置可能会阻塞消息生产者。于是马上查阅HornetQ官方文档：(http://docs.jboss.org/hornetq/2.4.0.Final/docs/user-manual/html_single/index.html) 通过官方文档，明确知道了对应的配置项，于是马上快速验证生产环境的配置： 线上配置队列容量为10485760 byte，即10MB。且开启了BLOCK(阻塞)策略。于是马上进一步验证PDF消息队列当前大小： 果然队列容量已超过10MB的限制。为什么会挤压这么多消息没处理呢？与现场同事确认，原来是之前现场部署PDF打印服务因机器中病毒，机器已关闭。到此，我们可以得出一个结论，现场因为机器中毒，关闭了我们的一台服务，导致消息不能消费，全部积压在了HornetQ上，从而导致了x-server发送消息时受到阻塞。此时有同事提问：为什么HornetQ重启了也没用呢？通过查阅源码，发现HornetQ客户端工具类中，默认都是采用“PERSISTENT”方式发送消息，即持久化方式发送。HornetQ服务端接收到持久化消息后，都会保存到磁盘来避免意外丢失。重启HornetQ服务时，消息从磁盘重新加载到内存，因此队列空间依然是满的。根据上面的结论，在本次测试环境中，通过程序将HornetQ中pdf任务队列塞满，果然此时保存数据失败，并得到与事故发生时同样的调用超时异常。观测数据库锁对象，信息与故障期间完全一致，同样是三条锁数据。至此，问题我们也已经复现。如何基于这种情况恢复业务呢？删除HornetQ的保存数据的文件夹data，并重启HornetQ。然后在前端页面保存数据，提示保存成功。分析疑问2：为什么JMS没有结束而数据库里面却有三条锁对象呢？难道是JMS消息发送在数据库事务中？翻阅源码，发现x-server项目中，事务是通过aop配置，拦截了所有实现“AutoAopService”接口的类，默认在方法开始前打开jdbc事务，并在方法正常结束提交事务、异常结束回滚事务。X数据文档保存的实现类“XServicesImpl”正是派生自“AutoAopService”，因此默认“XServicesImpl”下面的所有方法都是在完整的jdbc事务中执行，因此当JMS消息发送未完成时，数据库事务一直没有被关闭。三、事故总结 从导火索看，现场关闭了PDF服务的机器，导致了消息没有消费者，从而导致了HornetQ的积压，进一步影响到x-server的保存，并通过jdbc事务触发了数据库锁等待的报警。整个链路是雪崩式的垮塌，通过这个事件，后续的改善措施如下：现场迅速恢复PDF服务的机器。（不需要改任何程序，现场业务就能恢复）HornetQ的队列达到容量上限后，策略的配置方式请运维进行优化，从官方文档描述来看，建议设置为PAGE或FAIL，不建议设置为BLOCK或DROP。对HornetQ队列容量纳入监控，超过阈值后进行告警。x-server在保存时，将JMS消息的发送提到jdbc事务外面，并采用异步方式发送。（即使后续HornetQ发生意外，也不影响数据库和用户正常的保存流程）]]></content>
+      <categories>
+        <category>技术笔记</category>
+        <category>Java</category>
+      </categories>
+      <tags>
+        <tag>java</tag>
+        <tag>MQ</tag>
+      </tags>
+  </entry>
+  <entry>
     <title><![CDATA[Spring MVC中@RequestBody、@ResponseBody如何接收Abstract或Interface类型的参数？]]></title>
     <url>%2F%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0%2FJava%2FAbstract-Class-With-Responsebody.html</url>
     <content type="text"><![CDATA[在使用Spring-MVC对外发布Rest接口时，在某些场景中，入参可能会希望是一个接口类型或者抽象类型。SpingMVC的序列化默认采用的是Jackson来实现入参与出参的序列化，在调用方传递一个json字符串时，如何将json字符串转换为具体的实现class呢？如果不做任何处理？你可能会得到一个类似如下的异常：12345678910Caused by: com.fasterxml.jackson.databind.JsonMappingException: Can not construct instance of com.xxx.Task, problem: abstract types either need to be mapped to concrete types, have custom deserializer, or be instantiated with additional type information at [Source: java.io.PushbackInputStream@4e40388; line: 1, column: 2] (through reference chain: java.util.ArrayList[0]) at com.fasterxml.jackson.databind.JsonMappingException.from(JsonMappingException.java:148) at com.fasterxml.jackson.databind.DeserializationContext.instantiationException(DeserializationContext.java:892) at com.fasterxml.jackson.databind.deser.AbstractDeserializer.deserialize(AbstractDeserializer.java:139) at com.fasterxml.jackson.databind.deser.std.CollectionDeserializer.deserialize(CollectionDeserializer.java:245) at com.fasterxml.jackson.databind.deser.std.CollectionDeserializer.deserialize(CollectionDeserializer.java:217) at com.fasterxml.jackson.databind.deser.std.CollectionDeserializer.deserialize(CollectionDeserializer.java:25) at com.fasterxml.jackson.databind.ObjectMapper._readMapAndClose(ObjectMapper.java:3736) at com.fasterxml.jackson.databind.ObjectMapper.readValue(ObjectMapper.java:2810) 那么应该如何处理呢？接下来我们以具体的示例来演示。 假设我们需要实现一个向后台添加打印任务的接口，任务的类型分为课程打印、成绩单打印。（在此我们不讨论接口设计的合理性，只讨论存技术的实现）。 首先我们定义一个任务接口： 12345678public interface PrintTask extends Serializable&#123; Type getType(); enum Type&#123; COURSE, SCORE &#125;&#125; 接着我们定义两个具体的任务实现类： 1234567891011121314151617@Data // 此注解来自`lombok`，具体作用请参考：http://projectlombok.orgpublic class CoursePrintTask implements PrintTask&#123; private String course; public Type getType()&#123; return PrintTask.Type.COURSE; &#125;&#125;@Data // 此注解来自`lombok`，具体作用请参考：http://projectlombok.orgpublic class ScorePrintTask implements PrintTask&#123; private Double score; public Type getType()&#123; return PrintTask.Type.SCORE; &#125;&#125; 定义Rest接口： 12345678910111213@RestController@RequestMapping("/task")@Slf4j // 此注解来自`lombok`，具体作用请参考：http://projectlombok.orgpublic class TaskController&#123; @RequestMapping(value = "/print", method = RequestMethod.POST) public Task print(@RequestBody Task task)&#123; log.debug("received task: &#123;&#125;", task); // TODO print ... return task; // 直接返回任务对象 &#125;&#125; 构造请求： 1curl -XPOST http://localhost:8080/task/print -d '&#123;"course": "english", "type": "SCORE"&#125;' 不出意外，如上请求将会触发后端异常，且异常堆栈与文章开头所列类似。这是因为Jackson不知道该采用哪个子类来对{&quot;course&quot;: &quot;english&quot;, &quot;type&quot;: &quot;SCORE&quot;}进行反序列化。 如何告诉Jackson采用何种类型进行序列化呢？要做的事情也特别简单，代码如下： 12345678910111213@JsonTypeInfo(use = JsonTypeInfo.Id.NAME, include = JsonTypeInfo.As.PROPERTY, property = "type")@JsonSubTypes(&#123; @JsonSubTypes.Type(value = CoursePrintTask.class, name = "COURSE"), @JsonSubTypes.Type(value = ScorePrintTask.class, name = "SCORE")&#125;)public interface PrintTask extends Serializable&#123; Type getType(); enum Type&#123; COURSE, SCORE &#125;&#125; 更多关于jackson的异常与解决方案，请参考：http://www.baeldung.com/jackson-exception]]></content>
@@ -35,8 +48,8 @@
         <category>Java</category>
       </categories>
       <tags>
-        <tag>graphql</tag>
         <tag>微服务</tag>
+        <tag>graphql</tag>
       </tags>
   </entry>
   <entry>
@@ -113,8 +126,8 @@
       </categories>
       <tags>
         <tag>java</tag>
-        <tag>微服务</tag>
         <tag>hystrix</tag>
+        <tag>微服务</tag>
       </tags>
   </entry>
   <entry>

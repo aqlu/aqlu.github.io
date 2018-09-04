@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://zyouwei.com/"/>
-  <updated>2018-06-01T02:53:53.000Z</updated>
+  <updated>2018-09-03T12:46:34.000Z</updated>
   <id>http://zyouwei.com/</id>
   
   <author>
@@ -15,6 +15,32 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>HornetQ引发的一次生产环境故障</title>
+    <link href="http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/A-falut-caused-by-HornetQ.html"/>
+    <id>http://zyouwei.com/技术笔记/Java/A-falut-caused-by-HornetQ.html</id>
+    <published>2018-09-03T12:46:34.000Z</published>
+    <updated>2018-09-03T12:46:34.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>前段时间生产环境遇到一次故障，最终分析原因是HornetQ队列空间满造成。<a href="http://hornetq.jboss.org/" target="_blank" rel="noopener">HornetQ</a>是JBoss可能旗下的一款MQ产品，现已捐献给了Apache的ActiveMQ。下面将本次故障分析分享给大家，因涉及产品的信息安全问题，本文隐去了某些敏感信息。</p><a id="more"></a><h2 id="一、事故现场"><a href="#一、事故现场" class="headerlink" title="一、事故现场"></a>一、事故现场</h2><p>2018-06-01 运维接收到数据库锁等待的预警以及前台工作站JVM断连的告警，与此同时大量系统用户反馈数据保存失败。</p><pre><code>运维通过关停服务，kill数据库阻塞会话后重启启动服务，系统得到恢复没有反馈异常。案发现场留存线索有限，事故分析受阻。</code></pre><p>2018-07-04 15:30左右，类似“6.1大案”的问题再现。</p><pre><code>现场项目经理组织运维、开发、迅速到到位，着手恢复业务与问题修复。</code></pre><h2 id="二、分析过程"><a href="#二、分析过程" class="headerlink" title="二、分析过程"></a>二、分析过程</h2><p>从事故现场的分析，得到线索如下：</p><ol><li>在测试<code>0.36.8</code>(含PDF上传功能版本)时，发现在页面单击保存按钮时，数据库能看到三条锁等待记录；</li><li>回退<code>x-server</code>版本到<code>0.36.1</code>(PDF上传功能的前一个版本)问题解决；回退到<code>0.36.8</code>(PDF上传功能版本)问题依然存在；</li><li>故障期间对其中一台<code>x-server</code>的负载做了一个JVM线程堆的dump文件“threaddump-1530705117569.tdump”，同时做了两个JVM CPU的抽样快照。（注：从后续分析看，这条线索非常有价值——VIP线索）</li></ol><p><strong>分析线索1：</strong></p><p>第一反应是代码存在bug，在某些诱因下存在并发异常，导致数据库出现死锁。（因为问题是以数据库锁来暴漏出来的，因此把目光盯在了死锁上面，最后从结果来看此处方向走偏了，浪费了一些分析时间）。</p><p>可是故障期间，为了避免医生在故障之前已打开某功能书写页面且一直没有关闭，可能存在编辑器自动保存的并发问题，运维兄弟关闭了生产站点，重新搭了一台独立站点供排查问题。基于独立的站点保存此数据，<code>线索1</code>的现象会100%的复现。在此之前与运维确认已重启过<code>HornetQ</code>，初步排除了<code>HornetQ</code>故障；运维也重启过数据库，也初步排除数据库故障的可能。</p><p>是什么样的诱因会一直存在呢？</p><p>如果是代码存在100%复现的bug，那也不可能从6与1号稳定运行到7月4号。</p><p>无法得出结论，于是进行其它线索分析。</p><p><strong>分析线索2：</strong></p><p>不用思考就能得出一条结论，<code>0.36.8</code>(含PDF上传功能版本)存在bug。</p><p>可是反过来思考，为什么能稳定运行一个多月不出问题呢？而且生产测试环境也一直没有问题。一定还是存在某种诱因导致的。从<code>0.36.8</code>(PDF上传功能版本)的代码变更内容来看，在数据保存时，新增了JMS消息的发送，数据库<code>mapper</code>层与<code>mybatis</code>的<code>sqlmap</code>文件变化都不大，看不出造成<strong>死锁</strong>的可能。</p><p>结合自身之前项目中的一些经验，我还是把第一怀疑放在了JMS消息的发送上面，怀疑网络抖动或<code>HornetQ</code>假死。（从最后结果看，此处是转折点。猜对了第一“嫌疑人”，方向又调整了回来）</p><p>于是协调运维兄弟在现场测试环境重现问题，尝试关闭测试环境的<code>HornetQ</code>，发现虽然后台保存出现jms异常，但保存正常。尝试通过网络防火墙屏蔽<code>HornetQ</code>端口，数据也依然保存正常。</p><p>问题复现失败。</p><p>此时想起之前故障期间有做过JVM线程的dump与CPU的采样，那里面会不会有jms相关的线索呢？</p><p><strong>分析线索3:</strong></p><p>通过VisualVM打开线程dump文件，搜索“jms”关键字，发现有个<code>dubbo</code>服务线程在<code>WAITING</code>状态，里面包含了jms相关信息，如下图： <img src="/images/posts/2018-09/HornetQ_FALUT_1.png" alt="HornetQ_FALUT_1.png"></p><p>而且从线程的堆栈信息来看，确实是由数据保存时触发。于是马上打开之前的两次CPU采样，查找线程<code>&quot;DubboServerHandler-192.168.125.30:20880-thread-44&quot;</code>的相关信息。 <img src="/images/posts/2018-09/HornetQ_FALUT_3.png" alt="HornetQ_FALUT_3.png"></p><p>展开其耗时堆栈，堆栈很深，截图关键部位： <img src="/images/posts/2018-09/HornetQ_FALUT_2.png" alt="HornetQ_FALUT_2.png"></p><p>发现<code>Semaphore.acquire()</code>的耗时达到了<code>17430ms</code>，已超过了前台数据保存时，dubbo接口调用设置的10秒超时时间，这能解释现场保存数据报错时提示的dubbo超时异常信息。</p><p><em>新的疑问又来了：</em></p><blockquote><ol><li><p>HornetQ客户端在发送消息时，到底在等什么呢？</p></li><li><p>为什么JMS没有结束而数据库里面却有三条锁对象呢？难道是JMS消息发送在数据库事务中？</p></li></ol></blockquote><p>问题一步一步往下分析，</p><p><strong>分析疑问1：</strong></p><p>虽然对JMS规范是了然于心，但之前没有使用HornetQ的经验，于是请求Google，搜索“hornetq accquireCredits”: <img src="/images/posts/2018-09/HornetQ_FALUT_4.png" alt="HornetQ_FALUT_4.png"></p><p>看到第一条结果的标题立马怦然心动，看来有人也“hang”住过啊。赶紧点开阅读（在此附上文章链接，方便后续读者阅读。<a href="https://developer.jboss.org/thread/217626）：" target="_blank" rel="noopener">https://developer.jboss.org/thread/217626）：</a> <img src="/images/posts/2018-09/HornetQ_FALUT_5.png" alt="HornetQ_FALUT_5.png"></p><p>从这篇讨论信息中，得到几个重点信息，HornetQ应该有针对<strong>队列有大小控制</strong>，超过大小后通过配置可能会<strong>阻塞</strong>消息生产者。于是马上查阅HornetQ官方文档：(<a href="http://docs.jboss.org/hornetq/2.4.0.Final/docs/user-manual/html_single/index.html" target="_blank" rel="noopener">http://docs.jboss.org/hornetq/2.4.0.Final/docs/user-manual/html_single/index.html</a>) <img src="/images/posts/2018-09/HornetQ_FALUT_6.png" alt="HornetQ_FALUT_6.png"> <img src="/images/posts/2018-09/HornetQ_FALUT_7.png" alt="HornetQ_FALUT_7.png"></p><p>通过官方文档，明确知道了对应的配置项，于是马上快速验证生产环境的配置： <img src="/images/posts/2018-09/HornetQ_FALUT_8.png" alt="HornetQ_FALUT_8.png"></p><p>线上配置队列容量为<code>10485760 byte</code>，即<code>10MB</code>。且开启了<code>BLOCK(阻塞)</code>策略。于是马上进一步验证PDF消息队列当前大小： <img src="/images/posts/2018-09/HornetQ_FALUT_9.png" alt="HornetQ_FALUT_9.png"></p><p>果然队列容量已超过<code>10MB</code>的限制。为什么会挤压这么多消息没处理呢？与现场同事确认，原来是之前现场部署PDF打印服务因机器中病毒，机器已关闭。</p><p>到此，我们可以得出一个结论，现场因为机器中毒，关闭了我们的一台服务，导致消息不能消费，全部积压在了HornetQ上，从而导致了<code>x-server</code>发送消息时受到阻塞。</p><p><em>此时有同事提问：为什么HornetQ重启了也没用呢？</em></p><p>通过查阅源码，发现HornetQ客户端工具类中，默认都是采用<code>“PERSISTENT”</code>方式发送消息，即持久化方式发送。HornetQ服务端接收到持久化消息后，都会保存到磁盘来避免意外丢失。重启HornetQ服务时，消息从磁盘重新加载到内存，因此队列空间依然是满的。</p><p>根据上面的结论，在本次测试环境中，通过程序将HornetQ中pdf任务队列塞满，果然此时保存数据失败，并得到与事故发生时同样的调用超时异常。观测数据库锁对象，信息与故障期间完全一致，同样是三条锁数据。至此，问题我们也已经复现。</p><p><em>如何基于这种情况恢复业务呢？</em></p><blockquote><p>删除HornetQ的保存数据的文件夹data，并重启HornetQ。然后在前端页面保存数据，提示保存成功。</p></blockquote><p><strong>分析疑问2：</strong></p><p>为什么JMS没有结束而数据库里面却有三条锁对象呢？难道是JMS消息发送在数据库事务中？</p><p>翻阅源码，发现<code>x-server</code>项目中，事务是通过aop配置，拦截了所有实现“AutoAopService”接口的类，默认在方法开始前打开jdbc事务，并在方法正常结束提交事务、异常结束回滚事务。X数据文档保存的实现类“XServicesImpl”正是派生自“AutoAopService”，因此默认“XServicesImpl”下面的所有方法都是在完整的jdbc事务中执行，因此当JMS消息发送未完成时，数据库事务一直没有被关闭。</p><p>三、事故总结 从导火索看，现场关闭了PDF服务的机器，导致了消息没有消费者，从而导致了HornetQ的积压，进一步影响到<code>x-server</code>的保存，并通过jdbc事务触发了数据库锁等待的报警。</p><p>整个链路是雪崩式的垮塌，通过这个事件，后续的改善措施如下：</p><ol><li>现场迅速恢复PDF服务的机器。（不需要改任何程序，现场业务就能恢复）</li><li>HornetQ的队列达到容量上限后，策略的配置方式请运维进行优化，从官方文档描述来看，建议设置为<code>PAGE</code>或<code>FAIL</code>，不建议设置为<code>BLOCK</code>或<code>DROP</code>。</li><li>对HornetQ队列容量纳入监控，超过阈值后进行告警。</li><li><code>x-server</code>在保存时，将JMS消息的发送提到jdbc事务外面，并采用异步方式发送。（即使后续HornetQ发生意外，也不影响数据库和用户正常的保存流程）</li></ol>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;前段时间生产环境遇到一次故障，最终分析原因是HornetQ队列空间满造成。&lt;a href=&quot;http://hornetq.jboss.org/&quot; target=&quot;_blank&quot; rel=&quot;noopener&quot;&gt;HornetQ&lt;/a&gt;是JBoss可能旗下的一款MQ产品，现已捐献给了Apache的ActiveMQ。下面将本次故障分析分享给大家，因涉及产品的信息安全问题，本文隐去了某些敏感信息。&lt;/p&gt;
+    
+    </summary>
+    
+      <category term="技术笔记" scheme="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/"/>
+    
+      <category term="Java" scheme="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/"/>
+    
+    
+      <category term="java" scheme="http://zyouwei.com/tags/java/"/>
+    
+      <category term="MQ" scheme="http://zyouwei.com/tags/MQ/"/>
+    
+  </entry>
   
   <entry>
     <title>Spring MVC中@RequestBody、@ResponseBody如何接收Abstract或Interface类型的参数？</title>
@@ -88,9 +114,9 @@
       <category term="Java" scheme="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/"/>
     
     
-      <category term="graphql" scheme="http://zyouwei.com/tags/graphql/"/>
-    
       <category term="微服务" scheme="http://zyouwei.com/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/"/>
+    
+      <category term="graphql" scheme="http://zyouwei.com/tags/graphql/"/>
     
   </entry>
   
@@ -244,9 +270,9 @@
     
       <category term="java" scheme="http://zyouwei.com/tags/java/"/>
     
-      <category term="微服务" scheme="http://zyouwei.com/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/"/>
-    
       <category term="hystrix" scheme="http://zyouwei.com/tags/hystrix/"/>
+    
+      <category term="微服务" scheme="http://zyouwei.com/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/"/>
     
   </entry>
   
