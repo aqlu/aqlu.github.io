@@ -4,6 +4,31 @@
 
     
   <url>
+    <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/Springboot-startup-error-log-be-eat-off.html</loc>
+    <lastmod>2018-12-26T03:53:07.000Z</lastmod>
+    <data>
+        <display>
+        <title>Springboot启动异常日志被吞掉</title>
+        <pubTime>2018-12-26T03:53:07.000Z</pubTime>
+        
+        <tag>java</tag>
+         
+        <tag>springboot</tag>
+         
+         
+           
+             
+              <breadCrumb title="技术笔记" url="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/"/>
+          
+             
+              <breadCrumb title="Java" url="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/A-falut-caused-by-HornetQ.html</loc>
     <lastmod>2018-09-03T12:46:34.000Z</lastmod>
     <data>
@@ -112,9 +137,9 @@
         <title>GraphQL入门介绍（一）</title>
         <pubTime>2018-01-31T11:39:21.000Z</pubTime>
         
-        <tag>微服务</tag>
-         
         <tag>graphql</tag>
+         
+        <tag>微服务</tag>
          
          
            
@@ -212,9 +237,9 @@
         
         <tag>java</tag>
          
-        <tag>hystrix</tag>
-         
         <tag>微服务</tag>
+         
+        <tag>hystrix</tag>
          
          
            

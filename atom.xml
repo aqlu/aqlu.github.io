@@ -6,7 +6,7 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://zyouwei.com/"/>
-  <updated>2018-09-03T12:46:34.000Z</updated>
+  <updated>2018-12-26T03:53:07.000Z</updated>
   <id>http://zyouwei.com/</id>
   
   <author>
@@ -15,6 +15,32 @@
   </author>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>Springboot启动异常日志被吞掉</title>
+    <link href="http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/Springboot-startup-error-log-be-eat-off.html"/>
+    <id>http://zyouwei.com/技术笔记/Java/Springboot-startup-error-log-be-eat-off.html</id>
+    <published>2018-12-26T03:53:07.000Z</published>
+    <updated>2018-12-26T03:53:07.000Z</updated>
+    
+    <content type="html"><![CDATA[<p>项目中使用了springboot2.0.4，并集成了elasticsearch、dubbo等组件。在更新了创库代码后，发现突然程序启动不了，总是启动后tomcat自动关闭，日志信息如下： <img src="/images/posts/2018-12/image_1.png" alt="image_1.png"><a id="more"></a></p><p>很纳闷 :-(，任何异常日志都没有，出什么情况了？</p><p>第一感觉是程序有问题，更新了代码导致。可是本次更新的代码量有比较大，从源代码比对分析不靠谱，需要大量时间。另外源码有问题启动日志也应该要有报错信息。</p><h2 id="是日志级别不对吗？"><a href="#是日志级别不对吗？" class="headerlink" title="是日志级别不对吗？"></a>是日志级别不对吗？</h2><p>检查配置<code>logging.level.root</code>已经是<code>INFO</code>级别了，且没有其它级别控制。尝试将<code>logging.level.root=debug</code>，重启发现依然没有任何异常信息展现。</p><h2 id="日志输出组件冲突了吗？"><a href="#日志输出组件冲突了吗？" class="headerlink" title="日志输出组件冲突了吗？"></a>日志输出组件冲突了吗？</h2><p>由于笔者之前有过<code>log4j</code>框架切换<code>logback</code>的经验，因此怀疑<code>pom</code>中引入的组件传递依赖了一些不需要的<code>jar</code>包，导致日志组件冲突。</p><p>检查<code>pom</code>文件发现：</p><ol><li><p><code>elasticsearch-rest-client-sniffer</code>与<code>dubbo</code>组件传递依赖引入了<code>common-logging</code>组件。导致<code>spring-jcl</code>组件的<code>org.apache.commons.logging.LogFactory</code>没有被加载，而使用了<code>common-logging</code>中的<code>org.apache.commons.logging.LogFactory</code>类； 这是因为在JVM环境中存在同名的的class，类加载器根据加载顺序选择的。</p></li><li><p>在<code>spring-jcl</code>的<code>LogFactory</code>中，实现逻辑是如果<code>log4j2</code>的<code>jar</code>包存在，这优先使用<code>log4j2</code>来记录日志、然后才是<code>slf4j</code>。而在<code>common-logging</code>的<code>LogFactory</code>中，实现逻辑是如果<code>log4j</code>的<code>jar</code>包存在，优先采用<code>log4j</code>、然后采用jdk的util包中的logger记录。</p></li><li><p>在我们的启动环境中，我们采用通过<code>spring-boot-starter-logging</code>组件来输出日志，其默认采用的是<code>slf4j-api</code>来通过<code>logback</code>记录日志，<code>log4j2</code>组件是不存在的，于是<code>springboot</code>在启动时，因为类加载器的原因使用了<code>common-logging</code>的<code>LogFactory</code>，又因为<code>dubbo</code>、<code>zookeeper</code>、<code>zkclient</code>引入了<code>log4j</code>组件，导致<code>springboot</code>启动时的部分日志输出到了<code>log4j</code>，因此异常被吃掉了。</p></li></ol><h2 id="解决办法"><a href="#解决办法" class="headerlink" title="解决办法"></a>解决办法</h2><p>在依赖的“elasticsearch-rest-client-sniffer”、“dubbo”组件中排除掉对<code>common-logging</code>的依赖。</p><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.elasticsearch.client<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>elasticsearch-rest-client-sniffer<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;elasticsearch.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>commons-logging<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>commons-logging<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>com.alibaba<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>dubbo<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">version</span>&gt;</span>$&#123;dubbo.version&#125;<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">exclusions</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">exclusion</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>commons-logging<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>commons-logging<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">exclusion</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">exclusions</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br></pre></td></tr></table></figure><p>解决后重启程序，终于看到了异常原因：<img src="/images/posts/2018-12/image_2.jpg" alt="image_2.jpg"></p>]]></content>
+    
+    <summary type="html">
+    
+      &lt;p&gt;项目中使用了springboot2.0.4，并集成了elasticsearch、dubbo等组件。在更新了创库代码后，发现突然程序启动不了，总是启动后tomcat自动关闭，日志信息如下： &lt;img src=&quot;/images/posts/2018-12/image_1.png&quot; alt=&quot;image_1.png&quot;&gt;
+    
+    </summary>
+    
+      <category term="技术笔记" scheme="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/"/>
+    
+      <category term="Java" scheme="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/"/>
+    
+    
+      <category term="java" scheme="http://zyouwei.com/tags/java/"/>
+    
+      <category term="springboot" scheme="http://zyouwei.com/tags/springboot/"/>
+    
+  </entry>
   
   <entry>
     <title>HornetQ引发的一次生产环境故障</title>
@@ -114,9 +140,9 @@
       <category term="Java" scheme="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/"/>
     
     
-      <category term="微服务" scheme="http://zyouwei.com/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/"/>
-    
       <category term="graphql" scheme="http://zyouwei.com/tags/graphql/"/>
+    
+      <category term="微服务" scheme="http://zyouwei.com/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/"/>
     
   </entry>
   
@@ -270,9 +296,9 @@
     
       <category term="java" scheme="http://zyouwei.com/tags/java/"/>
     
-      <category term="hystrix" scheme="http://zyouwei.com/tags/hystrix/"/>
-    
       <category term="微服务" scheme="http://zyouwei.com/tags/%E5%BE%AE%E6%9C%8D%E5%8A%A1/"/>
+    
+      <category term="hystrix" scheme="http://zyouwei.com/tags/hystrix/"/>
     
   </entry>
   
