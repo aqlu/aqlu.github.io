@@ -2,6 +2,34 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://zyouwei.com/friends/index.html</loc>
+    
+    <lastmod>2019-05-14T05:54:23.680Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://zyouwei.com/about/index.html</loc>
+    
+    <lastmod>2019-05-14T02:59:24.682Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://zyouwei.com/categories/index.html</loc>
+    
+    <lastmod>2019-05-14T02:58:50.274Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://zyouwei.com/tags/index.html</loc>
+    
+    <lastmod>2019-05-14T02:58:39.613Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/Spring-WebServive.html</loc>
     
     <lastmod>2019-01-02T06:22:35.000Z</lastmod>
@@ -19,13 +47,6 @@
     <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/A-falut-caused-by-HornetQ.html</loc>
     
     <lastmod>2018-09-03T12:46:34.000Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://zyouwei.com/about/index.html</loc>
-    
-    <lastmod>2018-06-04T01:38:12.608Z</lastmod>
     
   </url>
   
@@ -110,20 +131,6 @@
     <loc>http://zyouwei.com/hello-world.html</loc>
     
     <lastmod>2017-11-21T09:11:42.020Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://zyouwei.com/categories/index.html</loc>
-    
-    <lastmod>2017-11-20T09:32:44.762Z</lastmod>
-    
-  </url>
-  
-  <url>
-    <loc>http://zyouwei.com/tags/index.html</loc>
-    
-    <lastmod>2017-11-20T09:32:41.569Z</lastmod>
     
   </url>
   
