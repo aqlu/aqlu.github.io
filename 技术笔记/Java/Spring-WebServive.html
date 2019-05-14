@@ -1,0 +1,503 @@
+<!DOCTYPE html><html class="theme-next pisces use-motion" lang="zh-Hans"><head><meta charset="UTF-8"><meta http-equiv="X-UA-Compatible" content="IE=edge"><meta name="viewport" content="width=device-width,initial-scale=1,maximum-scale=1"><meta name="theme-color" content="#222"><meta http-equiv="Cache-Control" content="no-transform"><meta http-equiv="Cache-Control" content="no-siteapp"><meta name="google-site-verification" content="e5C9WgZeIe_4VjbwMw8xd9XW3lyH1KT6BDpCMj8cEbc"><link href="/lib/fancybox/source/jquery.fancybox.css?v=2.1.5" rel="stylesheet" type="text/css"><link href="/lib/font-awesome/css/font-awesome.min.css?v=4.6.2" rel="stylesheet" type="text/css"><link href="/css/main.css?v=5.1.3" rel="stylesheet" type="text/css"><link rel="icon" type="image/png" sizes="16x16" href="/favicon.ico?v=5.1.3"><meta name="keywords" content="java,soap,webservice,"><link rel="alternate" href="/atom.xml" title="阿叩·杂记" type="application/atom+xml"><meta name="description" content="WebService、SOAP、WSDL的简单回顾WebService是什么？WebService在的概念很容易引起误解，很多初级开发人员的认知WebService接口等同于Soap接口，其实这是一种错误的认知。WebService是相对于“本地服务”（使用同一台机器提供的服务，不需要网络）来说的一个概念。”网络服务”"><meta name="keywords" content="java,soap,webservice"><meta property="og:type" content="article"><meta property="og:title" content="基于SpringBoot快速发布SOAP接口"><meta property="og:url" content="http://zyouwei.com/技术笔记/Java/Spring-WebServive.html"><meta property="og:site_name" content="阿叩·杂记"><meta property="og:description" content="WebService、SOAP、WSDL的简单回顾WebService是什么？WebService在的概念很容易引起误解，很多初级开发人员的认知WebService接口等同于Soap接口，其实这是一种错误的认知。WebService是相对于“本地服务”（使用同一台机器提供的服务，不需要网络）来说的一个概念。”网络服务”（Web Service）的本质，就是通过网络来调用其他服务器的资源。常见的We"><meta property="og:locale" content="zh-Hans"><meta property="og:updated_time" content="2019-01-02T06:22:35.000Z"><meta name="twitter:card" content="summary"><meta name="twitter:title" content="基于SpringBoot快速发布SOAP接口"><meta name="twitter:description" content="WebService、SOAP、WSDL的简单回顾WebService是什么？WebService在的概念很容易引起误解，很多初级开发人员的认知WebService接口等同于Soap接口，其实这是一种错误的认知。WebService是相对于“本地服务”（使用同一台机器提供的服务，不需要网络）来说的一个概念。”网络服务”（Web Service）的本质，就是通过网络来调用其他服务器的资源。常见的We"><script type="text/javascript" id="hexo.configurations">var NexT=window.NexT||{},CONFIG={root:"/",scheme:"Pisces",version:"5.1.3",sidebar:{position:"left",display:"post",offset:12,b2t:!1,scrollpercent:!1,onmobile:!1},fancybox:!0,tabs:!0,motion:{enable:!0,async:!1,transition:{post_block:"fadeIn",post_header:"slideDownIn",post_body:"slideDownIn",coll_header:"slideLeftIn",sidebar:"slideUpIn"}},duoshuo:{userId:"0",author:"博主"},algolia:{applicationID:"",apiKey:"",indexName:"",hits:{per_page:10},labels:{input_placeholder:"Search for Posts",hits_empty:"We didn't find any results for the search: ${query}",hits_stats:"${hits} results found in ${time} ms"}}}</script><link rel="canonical" href="http://zyouwei.com/技术笔记/Java/Spring-WebServive.html"><title>基于SpringBoot快速发布SOAP接口 | 阿叩·杂记</title><script>!function(e,a,t,n,g,c,o){e.GoogleAnalyticsObject=g,e.ga=e.ga||function(){(e.ga.q=e.ga.q||[]).push(arguments)},e.ga.l=1*new Date,c=a.createElement(t),o=a.getElementsByTagName(t)[0],c.async=1,c.src="https://www.google-analytics.com/analytics.js",o.parentNode.insertBefore(c,o)}(window,document,"script",0,"ga"),ga("create","UA-61930663-2","auto"),ga("send","pageview")</script><script type="text/javascript">var _hmt=_hmt||[];!function(){var e=document.createElement("script");e.src="https://hm.baidu.com/hm.js?a301e92960569ee5070a81e3ea1c5834";var t=document.getElementsByTagName("script")[0];t.parentNode.insertBefore(e,t)}()</script></head><body itemscope itemtype="http://schema.org/WebPage" lang="zh-Hans"><div class="container sidebar-position-left page-post-detail"><div class="headband"></div><header id="header" class="header" itemscope itemtype="http://schema.org/WPHeader"><div class="header-inner"><div class="site-brand-wrapper"><div class="site-meta"><div class="custom-logo-site-title"><a href="/" class="brand" rel="start"><span class="logo-line-before"><i></i></span> <span class="site-title">阿叩·杂记</span> <span class="logo-line-after"><i></i></span></a></div><p class="site-subtitle">学着写博客</p></div><div class="site-nav-toggle"><button><span class="btn-bar"></span> <span class="btn-bar"></span> <span class="btn-bar"></span></button></div></div><nav class="site-nav"><ul id="menu" class="menu"><li class="menu-item menu-item-home"><a href="/" rel="section"><i class="menu-item-icon fa fa-fw fa-home"></i><br>首页</a></li><li class="menu-item menu-item-about"><a href="/about/index.html" rel="section"><i class="menu-item-icon fa fa-fw fa-user"></i><br>关于</a></li><li class="menu-item menu-item-tags"><a href="/tags/index.html" rel="section"><i class="menu-item-icon fa fa-fw fa-tags"></i><br>标签</a></li><li class="menu-item menu-item-categories"><a href="/categories/index.html" rel="section"><i class="menu-item-icon fa fa-fw fa-th"></i><br>分类</a></li><li class="menu-item menu-item-archives"><a href="/archives/index.html" rel="section"><i class="menu-item-icon fa fa-fw fa-archive"></i><br>归档</a></li><li class="menu-item menu-item-sitemap"><a href="/sitemap.xml" rel="section"><i class="menu-item-icon fa fa-fw fa-sitemap"></i><br>站点地图</a></li><li class="menu-item menu-item-commonweal"><a href="/404.html" rel="section"><i class="menu-item-icon fa fa-fw fa-heartbeat"></i><br>公益404</a></li><li class="menu-item menu-item-search"><a href="javascript:;" class="popup-trigger"><i class="menu-item-icon fa fa-search fa-fw"></i><br>搜索</a></li></ul><div class="site-search"><div class="popup search-popup local-search-popup"><div class="local-search-header clearfix"><span class="search-icon"><i class="fa fa-search"></i> </span><span class="popup-btn-close"><i class="fa fa-times-circle"></i></span><div class="local-search-input-wrapper"><input autocomplete="off" placeholder="搜索..." spellcheck="false" type="text" id="local-search-input"></div></div><div id="local-search-result"></div></div></div></nav></div></header><main id="main" class="main"><div class="main-inner"><div class="content-wrap"><div id="content" class="content"><div id="posts" class="posts-expand"><article class="post post-type-normal" itemscope itemtype="http://schema.org/Article"><div class="post-block"><link itemprop="mainEntityOfPage" href="http://zyouwei.com/技术笔记/Java/Spring-WebServive.html"><span hidden itemprop="author" itemscope itemtype="http://schema.org/Person"><meta itemprop="name" content="Angus_Lu"><meta itemprop="description" content=""><meta itemprop="image" content="/images/avatar.jpg"></span><span hidden itemprop="publisher" itemscope itemtype="http://schema.org/Organization"><meta itemprop="name" content="阿叩·杂记"></span><header class="post-header"><h1 class="post-title" itemprop="name headline">基于SpringBoot快速发布SOAP接口</h1><div class="post-meta"><span class="post-time"><span class="post-meta-item-icon"><i class="fa fa-calendar-check-o"></i> </span><span class="post-meta-item-text">更新于&#58;</span> <time title="更新于" itemprop="dateModified" datetime="2019-01-02T14:22:35+08:00">2019-01-02 14:22:35 </time></span><span class="post-category"><span class="post-meta-divider">|</span> <span class="post-meta-item-icon"><i class="fa fa-folder-o"></i> </span><span class="post-meta-item-text">分类于</span> <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/技术笔记/" itemprop="url" rel="index"><span itemprop="name">技术笔记</span> </a></span>， <span itemprop="about" itemscope itemtype="http://schema.org/Thing"><a href="/categories/技术笔记/Java/" itemprop="url" rel="index"><span itemprop="name">Java</span> </a></span></span><span class="post-comments-count"><span class="post-meta-divider">|</span> <span class="post-meta-item-icon"><i class="fa fa-comment-o"></i> </span><a href="/技术笔记/Java/Spring-WebServive.html#comments" itemprop="discussionUrl"><span class="post-comments-count disqus-comment-count" data-disqus-identifier="技术笔记/Java/Spring-WebServive.html" itemprop="commentCount"></span> </a></span><span id="/技术笔记/Java/Spring-WebServive.html" class="leancloud_visitors" data-flag-title="基于SpringBoot快速发布SOAP接口"><span class="post-meta-divider">|</span> <span class="post-meta-item-icon"><i class="fa fa-eye"></i> </span><span class="post-meta-item-text">阅读次数&#58;</span> <span class="leancloud-visitors-count"></span></span></div></header><div class="post-body" itemprop="articleBody"><h2 id="WebService、SOAP、WSDL的简单回顾"><a href="#WebService、SOAP、WSDL的简单回顾" class="headerlink" title="WebService、SOAP、WSDL的简单回顾"></a>WebService、SOAP、WSDL的简单回顾</h2><h3 id="WebService是什么？"><a href="#WebService是什么？" class="headerlink" title="WebService是什么？"></a>WebService是什么？</h3><p>WebService在的概念很容易引起误解，很多初级开发人员的认知WebService接口等同于Soap接口，其实这是一种错误的认知。</p><p>WebService是相对于“本地服务”（使用同一台机器提供的服务，不需要网络）来说的一个概念。”网络服务”（Web Service）的本质，就是通过网络来调用其他服务器的资源。</p><p>常见的WebService接口类型有RPC、SOAP、Restful风格。</p><a id="more"></a><h3 id="SOAP是什么？"><a href="#SOAP是什么？" class="headerlink" title="SOAP是什么？"></a>SOAP是什么？</h3><p>SOAP全称 Simple Object Access Protocal，中文翻译为简单对象访问协议。它是一种用于交换XML编码信息的轻量级协议，用来描述传递信息的格式。一个完整的SOAP协议结构如下：</p><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version="1.0"?&gt;</span><br><span class="line"><span class="comment">&lt;!--必需的 Envelope 元素，可把此 XML 文档标识为一条 SOAP 消息--&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">soap:Envelope</span> <span class="attr">xmlns:soap</span>=<span class="string">"http://www.w3.org/2001/12/soap-envelope"</span> <span class="attr">soap:encodingStyle</span>=<span class="string">"http://www.w3.org/2001/12/soap-encoding"</span>&gt;</span>  </span><br><span class="line">    <span class="comment">&lt;!--可选的 Header 元素，包含头部信息--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">soap:Header</span>&gt;</span><span class="tag">&lt;/<span class="name">soap:Header</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!--必需的 Body 元素，包含所有的调用和响应信息--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">soap:Body</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--可选的 Fault 元素，提供有关在处理此消息所发生错误的信息--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">soap:Fault</span>&gt;</span><span class="tag">&lt;/<span class="name">soap:Fault</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">soap:Body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">soap:Envelope</span>&gt;</span></span><br></pre></td></tr></table></figure><p></p>
+<h3 id="WSDL是什么？"><a href="#WSDL是什么？" class="headerlink" title="WSDL是什么？"></a>WSDL是什么？</h3><p>WSDL全称Web Services Description Language，中文翻译为Web服务描述语言。它将Web服务描述定义为一组服务访问点，客户端可以通过这些服务访问点对服务进行访问。WSDL的内容也是基于XML的格式，用于描述WebServiced及其函数、参数、返回值。</p>
+<p>一个基本的WSDL文档包含7个重要的元素。下面是一个WSDL文档的示例：
+</p><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">&lt;?xml version="1.0" encoding="UTF-8" standalone="no"?&gt;</span><br><span class="line"><span class="tag">&lt;<span class="name">wsdl:definitions</span> <span class="attr">xmlns:wsdl</span>=<span class="string">"http://schemas.xmlsoap.org/wsdl/"</span> <span class="attr">xmlns:sch</span>=<span class="string">"http://myself.org"</span> <span class="attr">xmlns:soap</span>=<span class="string">"http://schemas.xmlsoap.org/wsdl/soap/"</span> <span class="attr">xmlns:tns</span>=<span class="string">"http://myself.org"</span> <span class="attr">targetNamespace</span>=<span class="string">"http://myself.org"</span>&gt;</span></span><br><span class="line">    <span class="comment">&lt;!-- Types: 数据类型定义的容器，它使用某种类型系统(一般地使用XML Schema中的类型系统) --&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">wsdl:types</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">xs:schema</span> <span class="attr">xmlns:xs</span>=<span class="string">"http://www.w3.org/2001/XMLSchema"</span> <span class="attr">elementFormDefault</span>=<span class="string">"qualified"</span> <span class="attr">targetNamespace</span>=<span class="string">"http://myself.org"</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">xs:element</span> <span class="attr">name</span>=<span class="string">"XMLServiceRequest"</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">xs:complexType</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">xs:sequence</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">xs:element</span> <span class="attr">name</span>=<span class="string">"input"</span> <span class="attr">type</span>=<span class="string">"xs:string"</span>/&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">xs:sequence</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">xs:complexType</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">xs:element</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">xs:element</span> <span class="attr">name</span>=<span class="string">"XMLServiceResponse"</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">xs:complexType</span>&gt;</span></span><br><span class="line">                    <span class="tag">&lt;<span class="name">xs:sequence</span>&gt;</span></span><br><span class="line">                        <span class="tag">&lt;<span class="name">xs:element</span> <span class="attr">name</span>=<span class="string">"result"</span> <span class="attr">type</span>=<span class="string">"xs:string"</span>/&gt;</span></span><br><span class="line">                    <span class="tag">&lt;/<span class="name">xs:sequence</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;/<span class="name">xs:complexType</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">xs:element</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">xs:schema</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">wsdl:types</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">&lt;!--Message: 通信消息的数据结构的抽象类型化定义。使用Types所定义的类型来定义整个消息的数据结构--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">wsdl:message</span> <span class="attr">name</span>=<span class="string">"XMLServiceRequest"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">wsdl:part</span> <span class="attr">element</span>=<span class="string">"tns:XMLServiceRequest"</span> <span class="attr">name</span>=<span class="string">"XMLServiceRequest"</span>&gt;</span><span class="tag">&lt;/<span class="name">wsdl:part</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">wsdl:message</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">wsdl:message</span> <span class="attr">name</span>=<span class="string">"XMLServiceResponse"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">wsdl:part</span> <span class="attr">element</span>=<span class="string">"tns:XMLServiceResponse"</span> <span class="attr">name</span>=<span class="string">"XMLServiceResponse"</span>&gt;</span><span class="tag">&lt;/<span class="name">wsdl:part</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">wsdl:message</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">&lt;!--PortType: 对于某个访问入口点类型所支持的操作的抽象集合，这些操作可以由一个或多个服务访问点来支持--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">wsdl:portType</span> <span class="attr">name</span>=<span class="string">"DemoServiceSoap"</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--Operation: 对服务中所支持的操作的抽象描述，一般单个Operation描述了一个访问入口的请求/响应消息对--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">wsdl:operation</span> <span class="attr">name</span>=<span class="string">"XMLService"</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">wsdl:input</span> <span class="attr">message</span>=<span class="string">"tns:XMLServiceRequest"</span> <span class="attr">name</span>=<span class="string">"XMLServiceRequest"</span>&gt;</span><span class="tag">&lt;/<span class="name">wsdl:input</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">wsdl:output</span> <span class="attr">message</span>=<span class="string">"tns:XMLServiceResponse"</span> <span class="attr">name</span>=<span class="string">"XMLServiceResponse"</span>&gt;</span><span class="tag">&lt;/<span class="name">wsdl:output</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">wsdl:operation</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">wsdl:portType</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="comment">&lt;!--Binding: 特定端口类型的具体协议和数据格式规范的绑定--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">wsdl:binding</span> <span class="attr">name</span>=<span class="string">"DemoServiceSoapSoap11"</span> <span class="attr">type</span>=<span class="string">"tns:DemoServiceSoap"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">soap:binding</span> <span class="attr">style</span>=<span class="string">"document"</span> <span class="attr">transport</span>=<span class="string">"http://schemas.xmlsoap.org/soap/http"</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">wsdl:operation</span> <span class="attr">name</span>=<span class="string">"XMLService"</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">soap:operation</span> <span class="attr">soapAction</span>=<span class="string">"http://myself.org/DemoService.XMLService"</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">wsdl:input</span> <span class="attr">name</span>=<span class="string">"XMLServiceRequest"</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">soap:body</span> <span class="attr">use</span>=<span class="string">"literal"</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">wsdl:input</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">wsdl:output</span> <span class="attr">name</span>=<span class="string">"XMLServiceResponse"</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">soap:body</span> <span class="attr">use</span>=<span class="string">"literal"</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">wsdl:output</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">wsdl:operation</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">wsdl:binding</span>&gt;</span></span><br><span class="line">    </span><br><span class="line">    <span class="comment">&lt;!--Service: 相关服务访问点的集合--&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">wsdl:service</span> <span class="attr">name</span>=<span class="string">"DemoServiceSoap"</span>&gt;</span></span><br><span class="line">        <span class="comment">&lt;!--Port: 定义为协议/数据格式绑定与具体Web访问地址组合的单个服务访问点--&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">wsdl:port</span> <span class="attr">binding</span>=<span class="string">"tns:DemoServiceSoapSoapSoap11"</span> <span class="attr">name</span>=<span class="string">"DemoServiceSoapSoapSoap11"</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">soap:address</span> <span class="attr">location</span>=<span class="string">"http://127.0.0.1:8080/ws/DemoService.XMLService.CLS"</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">wsdl:port</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">wsdl:service</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">wsdl:definitions</span>&gt;</span></span><br></pre></td></tr></table></figure><p></p>
+<h2 id="基于SpringBoot快速发布SOAP接口"><a href="#基于SpringBoot快速发布SOAP接口" class="headerlink" title="基于SpringBoot快速发布SOAP接口"></a>基于SpringBoot快速发布SOAP接口</h2><blockquote>
+<p>本文所写示例基于springboot 2.0.4.RELEASE版本。</p>
+</blockquote>
+<h3 id="添加依赖"><a href="#添加依赖" class="headerlink" title="添加依赖"></a>添加依赖</h3><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br></pre></td><td class="code"><pre><span class="line"> <span class="comment">&lt;!-- tag::springws[] --&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.springframework.boot<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>spring-boot-starter-web-services<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;<span class="name">dependency</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">groupId</span>&gt;</span>wsdl4j<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>wsdl4j<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">dependency</span>&gt;</span></span><br><span class="line"><span class="comment">&lt;!-- end::springws[] --&gt;</span></span><br><span class="line">``` </span><br><span class="line"></span><br><span class="line">### 定义数据结构，创建`src/main/resources/countries.xsd`</span><br><span class="line">```xml</span><br><span class="line"><span class="tag">&lt;<span class="name">xs:schema</span> <span class="attr">xmlns:xs</span>=<span class="string">"http://www.w3.org/2001/XMLSchema"</span> <span class="attr">xmlns:tns</span>=<span class="string">"http://spring.io/guides/gs-producing-web-service"</span></span></span><br><span class="line"><span class="tag">           <span class="attr">targetNamespace</span>=<span class="string">"http://spring.io/guides/gs-producing-web-service"</span> <span class="attr">elementFormDefault</span>=<span class="string">"qualified"</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">xs:element</span> <span class="attr">name</span>=<span class="string">"getCountryRequest"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">xs:complexType</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">xs:sequence</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">xs:element</span> <span class="attr">name</span>=<span class="string">"name"</span> <span class="attr">type</span>=<span class="string">"xs:string"</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">xs:sequence</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">xs:complexType</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">xs:element</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">xs:element</span> <span class="attr">name</span>=<span class="string">"getCountryResponse"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">xs:complexType</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">xs:sequence</span>&gt;</span></span><br><span class="line">                <span class="tag">&lt;<span class="name">xs:element</span> <span class="attr">name</span>=<span class="string">"country"</span> <span class="attr">type</span>=<span class="string">"tns:country"</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;/<span class="name">xs:sequence</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">xs:complexType</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">xs:element</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">xs:complexType</span> <span class="attr">name</span>=<span class="string">"country"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">xs:sequence</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">xs:element</span> <span class="attr">name</span>=<span class="string">"name"</span> <span class="attr">type</span>=<span class="string">"xs:string"</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">xs:element</span> <span class="attr">name</span>=<span class="string">"population"</span> <span class="attr">type</span>=<span class="string">"xs:int"</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">xs:element</span> <span class="attr">name</span>=<span class="string">"capital"</span> <span class="attr">type</span>=<span class="string">"xs:string"</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">xs:element</span> <span class="attr">name</span>=<span class="string">"currency"</span> <span class="attr">type</span>=<span class="string">"tns:currency"</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">xs:sequence</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">xs:complexType</span>&gt;</span></span><br><span class="line"></span><br><span class="line">    <span class="tag">&lt;<span class="name">xs:simpleType</span> <span class="attr">name</span>=<span class="string">"currency"</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">xs:restriction</span> <span class="attr">base</span>=<span class="string">"xs:string"</span>&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">xs:enumeration</span> <span class="attr">value</span>=<span class="string">"GBP"</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">xs:enumeration</span> <span class="attr">value</span>=<span class="string">"EUR"</span>/&gt;</span></span><br><span class="line">            <span class="tag">&lt;<span class="name">xs:enumeration</span> <span class="attr">value</span>=<span class="string">"PLN"</span>/&gt;</span></span><br><span class="line">        <span class="tag">&lt;/<span class="name">xs:restriction</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">xs:simpleType</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">xs:schema</span>&gt;</span></span><br></pre></td></tr></table></figure>
+<h3 id="根据Schma生成实体对象"><a href="#根据Schma生成实体对象" class="headerlink" title="根据Schma生成实体对象"></a>根据Schma生成实体对象</h3><p>在<code>pom.xml</code>中添加如下插件，执行<code>mvn compile</code>即可在<code>src/main/java</code>目录下发现生成的实体对象类。
+</p><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">plugin</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">groupId</span>&gt;</span>org.codehaus.mojo<span class="tag">&lt;/<span class="name">groupId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">artifactId</span>&gt;</span>jaxb2-maven-plugin<span class="tag">&lt;/<span class="name">artifactId</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">version</span>&gt;</span>1.6<span class="tag">&lt;/<span class="name">version</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">executions</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">execution</span>&gt;</span></span><br><span class="line">			<span class="tag">&lt;<span class="name">id</span>&gt;</span>xjc<span class="tag">&lt;/<span class="name">id</span>&gt;</span></span><br><span class="line">			<span class="tag">&lt;<span class="name">goals</span>&gt;</span></span><br><span class="line">				<span class="tag">&lt;<span class="name">goal</span>&gt;</span>xjc<span class="tag">&lt;/<span class="name">goal</span>&gt;</span></span><br><span class="line">			<span class="tag">&lt;/<span class="name">goals</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;/<span class="name">execution</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">executions</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;<span class="name">configuration</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">schemaDirectory</span>&gt;</span>$&#123;project.basedir&#125;/src/main/resources/<span class="tag">&lt;/<span class="name">schemaDirectory</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">outputDirectory</span>&gt;</span>$&#123;project.basedir&#125;/src/main/java<span class="tag">&lt;/<span class="name">outputDirectory</span>&gt;</span></span><br><span class="line">		<span class="tag">&lt;<span class="name">clearOutputDir</span>&gt;</span>false<span class="tag">&lt;/<span class="name">clearOutputDir</span>&gt;</span></span><br><span class="line">	<span class="tag">&lt;/<span class="name">configuration</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">plugin</span>&gt;</span></span><br></pre></td></tr></table></figure><p></p>
+<h3 id="创建数据仓库访问类"><a href="#创建数据仓库访问类" class="headerlink" title="创建数据仓库访问类"></a>创建数据仓库访问类</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> javax.annotation.PostConstruct;</span><br><span class="line"><span class="keyword">import</span> java.util.HashMap;</span><br><span class="line"><span class="keyword">import</span> java.util.Map;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> io.spring.guides.gs_producing_web_service.Country;</span><br><span class="line"><span class="keyword">import</span> io.spring.guides.gs_producing_web_service.Currency;</span><br><span class="line"><span class="keyword">import</span> org.springframework.stereotype.Component;</span><br><span class="line"><span class="keyword">import</span> org.springframework.util.Assert;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Component</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CountryRepository</span> </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Map&lt;String, Country&gt; countries = <span class="keyword">new</span> HashMap&lt;&gt;();</span><br><span class="line"></span><br><span class="line">	<span class="meta">@PostConstruct</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">initData</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		Country spain = <span class="keyword">new</span> Country();</span><br><span class="line">		spain.setName(<span class="string">"Spain"</span>);</span><br><span class="line">		spain.setCapital(<span class="string">"Madrid"</span>);</span><br><span class="line">		spain.setCurrency(Currency.EUR);</span><br><span class="line">		spain.setPopulation(<span class="number">46704314</span>);</span><br><span class="line"></span><br><span class="line">		countries.put(spain.getName(), spain);</span><br><span class="line"></span><br><span class="line">		Country poland = <span class="keyword">new</span> Country();</span><br><span class="line">		poland.setName(<span class="string">"Poland"</span>);</span><br><span class="line">		poland.setCapital(<span class="string">"Warsaw"</span>);</span><br><span class="line">		poland.setCurrency(Currency.PLN);</span><br><span class="line">		poland.setPopulation(<span class="number">38186860</span>);</span><br><span class="line"></span><br><span class="line">		countries.put(poland.getName(), poland);</span><br><span class="line"></span><br><span class="line">		Country uk = <span class="keyword">new</span> Country();</span><br><span class="line">		uk.setName(<span class="string">"United Kingdom"</span>);</span><br><span class="line">		uk.setCapital(<span class="string">"London"</span>);</span><br><span class="line">		uk.setCurrency(Currency.GBP);</span><br><span class="line">		uk.setPopulation(<span class="number">63705000</span>);</span><br><span class="line"></span><br><span class="line">		countries.put(uk.getName(), uk);</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> Country <span class="title">findCountry</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">		Assert.notNull(name, <span class="string">"The country's name must not be null"</span>);</span><br><span class="line">		<span class="keyword">return</span> countries.get(name);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="创建服务类"><a href="#创建服务类" class="headerlink" title="创建服务类"></a>创建服务类</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.springframework.beans.factory.annotation.Autowired;</span><br><span class="line"><span class="keyword">import</span> org.springframework.ws.server.endpoint.annotation.Endpoint;</span><br><span class="line"><span class="keyword">import</span> org.springframework.ws.server.endpoint.annotation.PayloadRoot;</span><br><span class="line"><span class="keyword">import</span> org.springframework.ws.server.endpoint.annotation.RequestPayload;</span><br><span class="line"><span class="keyword">import</span> org.springframework.ws.server.endpoint.annotation.ResponsePayload;</span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> io.spring.guides.gs_producing_web_service.GetCountryRequest;</span><br><span class="line"><span class="keyword">import</span> io.spring.guides.gs_producing_web_service.GetCountryResponse;</span><br><span class="line"></span><br><span class="line"><span class="meta">@Endpoint</span> <span class="comment">//使用Spring WS注册该类作为处理传入SOAP消息的潜在候选者</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CountryEndpoint</span> </span>&#123;</span><br><span class="line">	<span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String NAMESPACE_URI = <span class="string">"http://spring.io/guides/gs-producing-web-service"</span>;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">private</span> CountryRepository countryRepository;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Autowired</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="title">CountryEndpoint</span><span class="params">(CountryRepository countryRepository)</span> </span>&#123;</span><br><span class="line">		<span class="keyword">this</span>.countryRepository = countryRepository;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@PayloadRoot</span>(namespace = NAMESPACE_URI, localPart = <span class="string">"getCountryRequest"</span>) <span class="comment">//Spring WS使用它来根据消息的名称空间和localPart选择处理程序方法。</span></span><br><span class="line">	<span class="meta">@ResponsePayload</span> <span class="comment">//将返回值映射到响应</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> GetCountryResponse <span class="title">getCountry</span><span class="params">(</span></span></span><br><span class="line"><span class="function"><span class="params">        @RequestPayload GetCountryRequest request // 表示传入消息将映射到方法的请求参数</span></span></span><br><span class="line"><span class="function"><span class="params">        )</span> </span>&#123;</span><br><span class="line">		GetCountryResponse response = <span class="keyword">new</span> GetCountryResponse();</span><br><span class="line">		response.setCountry(countryRepository.findCountry(request.getName()));</span><br><span class="line"></span><br><span class="line">		<span class="keyword">return</span> response;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="配置WebService服务"><a href="#配置WebService服务" class="headerlink" title="配置WebService服务"></a>配置WebService服务</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.springframework.boot.web.servlet.ServletRegistrationBean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.ApplicationContext;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Bean;</span><br><span class="line"><span class="keyword">import</span> org.springframework.context.annotation.Configuration;</span><br><span class="line"><span class="keyword">import</span> org.springframework.core.io.ClassPathResource;</span><br><span class="line"><span class="keyword">import</span> org.springframework.ws.config.annotation.EnableWs;</span><br><span class="line"><span class="keyword">import</span> org.springframework.ws.config.annotation.WsConfigurerAdapter;</span><br><span class="line"><span class="keyword">import</span> org.springframework.ws.transport.http.MessageDispatcherServlet;</span><br><span class="line"><span class="keyword">import</span> org.springframework.ws.wsdl.wsdl11.DefaultWsdl11Definition;</span><br><span class="line"><span class="keyword">import</span> org.springframework.xml.xsd.SimpleXsdSchema;</span><br><span class="line"><span class="keyword">import</span> org.springframework.xml.xsd.XsdSchema;</span><br><span class="line"></span><br><span class="line"><span class="meta">@EnableWs</span> <span class="comment">// 开启WebService</span></span><br><span class="line"><span class="meta">@Configuration</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">WebServiceConfig</span> <span class="keyword">extends</span> <span class="title">WsConfigurerAdapter</span> </span>&#123;</span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> ServletRegistrationBean <span class="title">messageDispatcherServlet</span><span class="params">(ApplicationContext applicationContext)</span> </span>&#123;</span><br><span class="line">		MessageDispatcherServlet servlet = <span class="keyword">new</span> MessageDispatcherServlet();</span><br><span class="line">		servlet.setApplicationContext(applicationContext);</span><br><span class="line">		servlet.setTransformWsdlLocations(<span class="keyword">true</span>);</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> ServletRegistrationBean(servlet, <span class="string">"/ws/*"</span>); <span class="comment">// 通过"/ws/*"路径来发布WSDL文件</span></span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Bean</span>(name = <span class="string">"countries"</span>)</span><br><span class="line">	<span class="function"><span class="keyword">public</span> DefaultWsdl11Definition <span class="title">defaultWsdl11Definition</span><span class="params">(XsdSchema countriesSchema)</span> </span>&#123;</span><br><span class="line">        <span class="comment">// 使用XsdSchema公开标准WSDL 1.1 发布描述文件，访问路径：http://&lt;host&gt;:&lt;port&gt;/ws/countries.wsdl</span></span><br><span class="line">		DefaultWsdl11Definition wsdl11Definition = <span class="keyword">new</span> DefaultWsdl11Definition();</span><br><span class="line">		wsdl11Definition.setPortTypeName(<span class="string">"CountriesPort"</span>);</span><br><span class="line">		wsdl11Definition.setLocationUri(<span class="string">"/ws"</span>);</span><br><span class="line">		wsdl11Definition.setTargetNamespace(<span class="string">"http://spring.io/guides/gs-producing-web-service"</span>);</span><br><span class="line">		wsdl11Definition.setSchema(countriesSchema);</span><br><span class="line">		<span class="keyword">return</span> wsdl11Definition;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">	<span class="meta">@Bean</span></span><br><span class="line">	<span class="function"><span class="keyword">public</span> XsdSchema <span class="title">countriesSchema</span><span class="params">()</span> </span>&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="keyword">new</span> SimpleXsdSchema(<span class="keyword">new</span> ClassPathResource(<span class="string">"countries.xsd"</span>));</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="创建启动类"><a href="#创建启动类" class="headerlink" title="创建启动类"></a>创建启动类</h3><figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> org.springframework.boot.SpringApplication;</span><br><span class="line"><span class="keyword">import</span> org.springframework.boot.autoconfigure.SpringBootApplication;</span><br><span class="line"></span><br><span class="line"><span class="meta">@SpringBootApplication</span></span><br><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">Application</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">	<span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">main</span><span class="params">(String[] args)</span> </span>&#123;</span><br><span class="line">		SpringApplication.run(Application.class, args);</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h3 id="测试"><a href="#测试" class="headerlink" title="测试"></a>测试</h3><h4 id="查看WSDL文件"><a href="#查看WSDL文件" class="headerlink" title="查看WSDL文件"></a>查看WSDL文件</h4><p>在浏览器中访问：<code>http://&lt;host&gt;:&lt;port&gt;/ws/countries.wsdl</code>，将会看到WSDL文件。</p>
+<h4 id="发送SOAP测试请求"><a href="#发送SOAP测试请求" class="headerlink" title="发送SOAP测试请求"></a>发送SOAP测试请求</h4><p>本地创建<code>request.xml</code>，内容如下：
+</p><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line"><span class="tag">&lt;<span class="name">soapenv:Envelope</span> <span class="attr">xmlns:soapenv</span>=<span class="string">"http://schemas.xmlsoap.org/soap/envelope/"</span></span></span><br><span class="line"><span class="tag">				  <span class="attr">xmlns:gs</span>=<span class="string">"http://spring.io/guides/gs-producing-web-service"</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">soapenv:Header</span>/&gt;</span></span><br><span class="line">   <span class="tag">&lt;<span class="name">soapenv:Body</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">gs:getCountryRequest</span>&gt;</span></span><br><span class="line">         <span class="tag">&lt;<span class="name">gs:name</span>&gt;</span>Spain<span class="tag">&lt;/<span class="name">gs:name</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">gs:getCountryRequest</span>&gt;</span></span><br><span class="line">   <span class="tag">&lt;/<span class="name">soapenv:Body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">soapenv:Envelope</span>&gt;</span></span><br></pre></td></tr></table></figure><p></p>
+<p>使用<code>curl</code>在、在终端中执行如下指令：
+</p><figure class="highlight bash"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ curl --header <span class="string">"content-type: text/xml"</span> -d @request.xml http://localhost:8080/ws</span><br></pre></td></tr></table></figure><p></p>
+<p>测试成功的结果如下：
+</p><figure class="highlight xml"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br></pre></td><td class="code"><pre><span class="line">&lt;?xml version="1.0"?&gt;</span><br><span class="line"><span class="tag">&lt;<span class="name">SOAP-ENV:Envelope</span> <span class="attr">xmlns:SOAP-ENV</span>=<span class="string">"http://schemas.xmlsoap.org/soap/envelope/"</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">SOAP-ENV:Header</span>/&gt;</span></span><br><span class="line">  <span class="tag">&lt;<span class="name">SOAP-ENV:Body</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;<span class="name">ns2:getCountryResponse</span> <span class="attr">xmlns:ns2</span>=<span class="string">"http://spring.io/guides/gs-producing-web-service"</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;<span class="name">ns2:country</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">ns2:name</span>&gt;</span>Spain<span class="tag">&lt;/<span class="name">ns2:name</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">ns2:population</span>&gt;</span>46704314<span class="tag">&lt;/<span class="name">ns2:population</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">ns2:capital</span>&gt;</span>Madrid<span class="tag">&lt;/<span class="name">ns2:capital</span>&gt;</span></span><br><span class="line">        <span class="tag">&lt;<span class="name">ns2:currency</span>&gt;</span>EUR<span class="tag">&lt;/<span class="name">ns2:currency</span>&gt;</span></span><br><span class="line">      <span class="tag">&lt;/<span class="name">ns2:country</span>&gt;</span></span><br><span class="line">    <span class="tag">&lt;/<span class="name">ns2:getCountryResponse</span>&gt;</span></span><br><span class="line">  <span class="tag">&lt;/<span class="name">SOAP-ENV:Body</span>&gt;</span></span><br><span class="line"><span class="tag">&lt;/<span class="name">SOAP-ENV:Envelope</span>&gt;</span></span><br></pre></td></tr></table></figure><p></p>
+      
+    </div>
+    
+    
+    
+
+    
+      <div>
+        <div id="wechat_subscriber" style="display:block;padding:10px 0;margin:20px auto;width:100%;text-align:center">
+    <img id="wechat_subscriber_qcode" src="/images/wechat-myself.jpg" alt="Angus_Lu wechat" style="width:200px;max-width:100%">
+    <div>欢迎添加我的微信号进行交流，请备注：“来自：阿叩·杂记”</div>
+</div>
+
+      </div>
+    
+
+    
+      <div>
+        <div style="padding:10px 0;margin:20px auto;width:90%;text-align:center">
+  <div>坚持原创分享，您的支持将鼓励我继续创作！</div>
+  <button id="rewardButton" disable="enable" onclick='var qr=document.getElementById("QR");"none"===qr.style.display?qr.style.display="block":qr.style.display="none"'>
+    <span>打赏</span>
+  </button>
+  <div id="QR" style="display:none">
+
+    
+      <div id="wechat" style="display:inline-block">
+        <img id="wechat_qr" src="/images/wechatpay.jpg" alt="Angus_Lu 微信支付">
+        <p>微信支付</p>
+      </div>
+    
+
+    
+      <div id="alipay" style="display:inline-block">
+        <img id="alipay_qr" src="/images/alipay.jpg" alt="Angus_Lu 支付宝">
+        <p>支付宝</p>
+      </div>
+    
+
+    
+
+  </div>
+</div>
+
+      </div>
+    
+
+    
+      <div>
+        <ul class="post-copyright">
+  <li class="post-copyright-author">
+    <strong>本文作者：</strong>
+    Angus_Lu
+  </li>
+  <li class="post-copyright-link">
+    <strong>本文链接：</strong>
+    <a href="http://zyouwei.com/技术笔记/Java/Spring-WebServive.html" title="基于SpringBoot快速发布SOAP接口">http://zyouwei.com/技术笔记/Java/Spring-WebServive.html</a>
+  </li>
+  <li class="post-copyright-license">
+    <strong>版权声明： </strong>
+    本博客所有文章除特别声明外，均采用 <a href="https://creativecommons.org/licenses/by-nc-sa/4.0/" rel="external nofollow" target="_blank">CC BY-NC-SA 4.0</a> 许可协议。转载请注明出处！
+  </li>
+</ul>
+
+      </div>
+    
+
+    <footer class="post-footer">
+      
+        <div class="post-tags">
+          
+            <a href="/tags/java/" rel="tag"># java</a>
+          
+            <a href="/tags/soap/" rel="tag"># soap</a>
+          
+            <a href="/tags/webservice/" rel="tag"># webservice</a>
+          
+        </div>
+      
+
+      
+      
+      
+
+      
+        <div class="post-nav">
+          <div class="post-nav-next post-nav-item">
+            
+              <a href="/技术笔记/Java/Springboot-startup-error-log-be-eat-off.html" rel="next" title="Springboot启动异常日志被吞掉">
+                <i class="fa fa-chevron-left"></i> Springboot启动异常日志被吞掉
+              </a>
+            
+          </div>
+
+          <span class="post-nav-divider"></span>
+
+          <div class="post-nav-prev post-nav-item">
+            
+          </div>
+        </div>
+      
+
+      
+      
+    </footer>
+  </div>
+  
+  
+  
+  </article>
+
+
+
+    <div class="post-spread">
+      
+    </div>
+  </div>
+
+
+          </div>
+          
+
+
+          
+
+  
+    <div class="comments" id="comments">
+      <div id="disqus_thread">
+        <noscript>
+          Please enable JavaScript to view the
+          <a href="https://disqus.com/?ref_noscript">comments powered by Disqus.</a>
+        </noscript>
+      </div>
+    </div>
+
+  
+
+
+
+        </div>
+        
+          
+  
+  <div class="sidebar-toggle">
+    <div class="sidebar-toggle-line-wrap">
+      <span class="sidebar-toggle-line sidebar-toggle-line-first"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-middle"></span>
+      <span class="sidebar-toggle-line sidebar-toggle-line-last"></span>
+    </div>
+  </div>
+
+  <aside id="sidebar" class="sidebar">
+    
+    <div class="sidebar-inner">
+
+      
+
+      
+        <ul class="sidebar-nav motion-element">
+          <li class="sidebar-nav-toc sidebar-nav-active" data-target="post-toc-wrap">
+            文章目录
+          </li>
+          <li class="sidebar-nav-overview" data-target="site-overview-wrap">
+            站点概览
+          </li>
+        </ul>
+      
+
+      <section class="site-overview-wrap sidebar-panel">
+        <div class="site-overview">
+          <div class="site-author motion-element" itemprop="author" itemscope itemtype="http://schema.org/Person">
+            
+              <img class="site-author-image" itemprop="image" src="/images/avatar.jpg" alt="Angus_Lu">
+            
+              <p class="site-author-name" itemprop="name">Angus_Lu</p>
+              <p class="site-description motion-element" itemprop="description">来自阿叩的工作、生活杂记</p>
+          </div>
+
+          <nav class="site-state motion-element">
+
+            
+              <div class="site-state-item site-state-posts">
+              
+                <a href="/archives/index.html">
+              
+                  <span class="site-state-item-count">16</span>
+                  <span class="site-state-item-name">日志</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-categories">
+                <a href="/categories/index.html">
+                  <span class="site-state-item-count">4</span>
+                  <span class="site-state-item-name">分类</span>
+                </a>
+              </div>
+            
+
+            
+              
+              
+              <div class="site-state-item site-state-tags">
+                <a href="/tags/index.html">
+                  <span class="site-state-item-count">21</span>
+                  <span class="site-state-item-name">标签</span>
+                </a>
+              </div>
+            
+
+          </nav>
+
+          
+            <div class="feed-link motion-element">
+              <a href="/atom.xml" rel="alternate">
+                <i class="fa fa-rss"></i>
+                RSS
+              </a>
+            </div>
+          
+
+          <div class="links-of-author motion-element">
+            
+              
+                <span class="links-of-author-item">
+                  <a href="https://github.com/aqlu" target="_blank" title="GitHub">
+                    
+                      <i class="fa fa-fw fa-github"></i>GitHub</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="mailto:angus.aqlu@gmail.com" target="_blank" title="E-Mail">
+                    
+                      <i class="fa fa-fw fa-envelope"></i>E-Mail</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.weibo.com/u/2139905947" target="_blank" title="微博">
+                    
+                      <i class="fa fa-fw fa-weibo"></i>微博</a>
+                </span>
+              
+                <span class="links-of-author-item">
+                  <a href="https://www.zhihu.com/people/angus-lu" target="_blank" title="知乎">
+                    
+                      <i class="fa fa-fw fa-link"></i>知乎</a>
+                </span>
+              
+            
+          </div>
+
+          
+          
+
+          
+          
+
+          
+
+        </div>
+      </section>
+
+      
+      
+        <section class="post-toc-wrap motion-element sidebar-panel sidebar-panel-active">
+          <div class="post-toc">
+
+            
+              
+            
+
+            
+              <div class="post-toc-content"><ol class="nav"><li class="nav-item nav-level-2"><a class="nav-link" href="#WebService、SOAP、WSDL的简单回顾"><span class="nav-number">1.</span> <span class="nav-text">WebService、SOAP、WSDL的简单回顾</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#WebService是什么？"><span class="nav-number">1.1.</span> <span class="nav-text">WebService是什么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#SOAP是什么？"><span class="nav-number">1.2.</span> <span class="nav-text">SOAP是什么？</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#WSDL是什么？"><span class="nav-number">1.3.</span> <span class="nav-text">WSDL是什么？</span></a></li></ol></li><li class="nav-item nav-level-2"><a class="nav-link" href="#基于SpringBoot快速发布SOAP接口"><span class="nav-number">2.</span> <span class="nav-text">基于SpringBoot快速发布SOAP接口</span></a><ol class="nav-child"><li class="nav-item nav-level-3"><a class="nav-link" href="#添加依赖"><span class="nav-number">2.1.</span> <span class="nav-text">添加依赖</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#根据Schma生成实体对象"><span class="nav-number">2.2.</span> <span class="nav-text">根据Schma生成实体对象</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建数据仓库访问类"><span class="nav-number">2.3.</span> <span class="nav-text">创建数据仓库访问类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建服务类"><span class="nav-number">2.4.</span> <span class="nav-text">创建服务类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#配置WebService服务"><span class="nav-number">2.5.</span> <span class="nav-text">配置WebService服务</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#创建启动类"><span class="nav-number">2.6.</span> <span class="nav-text">创建启动类</span></a></li><li class="nav-item nav-level-3"><a class="nav-link" href="#测试"><span class="nav-number">2.7.</span> <span class="nav-text">测试</span></a><ol class="nav-child"><li class="nav-item nav-level-4"><a class="nav-link" href="#查看WSDL文件"><span class="nav-number">2.7.1.</span> <span class="nav-text">查看WSDL文件</span></a></li><li class="nav-item nav-level-4"><a class="nav-link" href="#发送SOAP测试请求"><span class="nav-number">2.7.2.</span> <span class="nav-text">发送SOAP测试请求</span></a></li></ol></li></ol></li></ol></div>
+            
+
+          </div>
+        </section>
+      
+      
+
+      
+
+    </div>
+  </aside>
+
+
+        
+      </div>
+    </main>
+
+    <footer id="footer" class="footer">
+      <div class="footer-inner">
+        <div class="copyright">&copy; 2017 &mdash; <span itemprop="copyrightYear">2019</span>
+  <span class="with-love">
+    <i class="fa fa-user"></i>
+  </span>
+  <span class="author" itemprop="copyrightHolder">Angus_Lu</span>
+
+  
+</div>
+
+
+  <div class="powered-by">由 <a class="theme-link" target="_blank" href="https://hexo.io">Hexo</a> 强力驱动</div>
+
+
+
+  <span class="post-meta-divider">|</span>
+
+
+
+  <div class="theme-info">主题 &mdash; <a class="theme-link" target="_blank" href="https://github.com/iissnan/hexo-theme-next">NexT.Pisces</a> v5.1.3</div>
+
+
+
+
+        
+
+
+
+
+
+
+
+        
+      </div>
+    </footer>
+
+    
+      <div class="back-to-top">
+        <i class="fa fa-arrow-up"></i>
+        
+      </div>
+    
+
+    
+
+  </div>
+
+  
+
+<script type="text/javascript">"[object Function]"!==Object.prototype.toString.call(window.Promise)&&(window.Promise=null)</script>
+
+
+
+
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery/index.js?v=2.1.3"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fastclick/lib/fastclick.min.js?v=1.0.6"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/jquery_lazyload/jquery.lazyload.js?v=1.9.7"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/velocity/velocity.ui.min.js?v=1.2.1"></script>
+  
+
+  
+  
+    <script type="text/javascript" src="/lib/fancybox/source/jquery.fancybox.pack.js?v=2.1.5"></script>
+  
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/utils.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/motion.js?v=5.1.3"></script>
+
+
+
+  
+  
+
+
+  <script type="text/javascript" src="/js/src/affix.js?v=5.1.3"></script>
+
+  <script type="text/javascript" src="/js/src/schemes/pisces.js?v=5.1.3"></script>
+
+
+
+  
+  <script type="text/javascript" src="/js/src/scrollspy.js?v=5.1.3"></script>
+<script type="text/javascript" src="/js/src/post-details.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  <script type="text/javascript" src="/js/src/bootstrap.js?v=5.1.3"></script>
+
+
+
+  
+
+
+  
+
+    
+      <script id="dsq-count-scr" src="https://aqlu.disqus.com/count.js" async></script>
+    
+
+    
+      <script type="text/javascript">var disqus_config=function(){this.page.url="http://zyouwei.com/技术笔记/Java/Spring-WebServive.html",this.page.identifier="技术笔记/Java/Spring-WebServive.html",this.page.title="基于SpringBoot快速发布SOAP接口"},d=document,s=d.createElement("script");s.src="https://aqlu.disqus.com/embed.js",s.setAttribute("data-timestamp",""+ +new Date),(d.head||d.body).appendChild(s)</script>
+    
+
+  
+
+
+
+
+	
+
+
+
+
+
+  
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+  
+
+  <script type="text/javascript">function proceedsearch(){$("body").append('<div class="search-popup-overlay local-search-pop-overlay"></div>').css("overflow","hidden"),$(".search-popup-overlay").click(onPopupClose),$(".popup").toggle();var t=$("#local-search-input");t.attr("autocapitalize","none"),t.attr("autocorrect","off"),t.focus()}var isfetched=!1,isXml=!0,search_path="search.xml";0===search_path.length?search_path="search.xml":/json$/i.test(search_path)&&(isXml=!1);var path="/"+search_path,onPopupClose=function(t){$(".popup").hide(),$("#local-search-input").val(""),$(".search-result-list").remove(),$("#no-result").remove(),$(".local-search-pop-overlay").remove(),$("body").css("overflow","")},searchFunc=function(t,e,o){"use strict";$("body").append('<div class="search-popup-overlay local-search-pop-overlay"><div id="search-loading-icon"><i class="fa fa-spinner fa-pulse fa-5x fa-fw"></i></div></div>').css("overflow","hidden"),$("#search-loading-icon").css("margin","20% auto 0 auto").css("text-align","center"),$.ajax({url:t,dataType:isXml?"xml":"json",async:!0,success:function(t){isfetched=!0,$(".popup").detach().appendTo(".header-inner");var n=isXml?$("entry",t).map(function(){return{title:$("title",this).text(),content:$("content",this).text(),url:$("url",this).text()}}).get():t,r=document.getElementById(e),s=document.getElementById(o),a=function(){var t=r.value.trim().toLowerCase(),e=t.split(/[\s\-]+/);e.length>1&&e.push(t);var o=[];if(t.length>0&&n.forEach(function(n){var r=!1,s=0,a=0,i=n.title.trim(),c=i.toLowerCase(),l=n.content.trim().replace(/<[^>]+>/g,""),h=l.toLowerCase(),p=decodeURIComponent(n.url),u=[],f=[];if(""!=i&&(e.forEach(function(t){function e(t,e,o){var n=t.length;if(0===n)return[];var r=0,s=[],a=[];for(o||(e=e.toLowerCase(),t=t.toLowerCase());(s=e.indexOf(t,r))>-1;)a.push({position:s,word:t}),r=s+n;return a}u=u.concat(e(t,c,!1)),f=f.concat(e(t,h,!1))}),(u.length>0||f.length>0)&&(r=!0,s=u.length+f.length)),r){[u,f].forEach(function(t){t.sort(function(t,e){return e.position!==t.position?e.position-t.position:t.word.length-e.word.length})});function d(e,o,n,r){for(var s=r[r.length-1],i=s.position,c=s.word,l=[],h=0;i+c.length<=n&&0!=r.length;){c===t&&h++,l.push({position:i,length:c.length});var p=i+c.length;for(r.pop();0!=r.length&&(s=r[r.length-1],i=s.position,c=s.word,p>i);)r.pop()}return a+=h,{hits:l,start:o,end:n,searchTextCount:h}}var g=[];0!=u.length&&g.push(d(0,0,i.length,u));for(var v=[];0!=f.length;){var $=f[f.length-1],C=$.position,m=$.word,x=C-20,w=C+80;x<0&&(x=0),w<C+m.length&&(w=C+m.length),w>l.length&&(w=l.length),v.push(d(0,x,w,f))}v.sort(function(t,e){return t.searchTextCount!==e.searchTextCount?e.searchTextCount-t.searchTextCount:t.hits.length!==e.hits.length?e.hits.length-t.hits.length:t.start-e.start});var y=parseInt("1");y>=0&&(v=v.slice(0,y));function T(t,e){var o="",n=e.start;return e.hits.forEach(function(e){o+=t.substring(n,e.position);var r=e.position+e.length;o+='<b class="search-keyword">'+t.substring(e.position,r)+"</b>",n=r}),o+=t.substring(n,e.end)}var b="";0!=g.length?b+="<li><a href='"+p+"' class='search-result-title'>"+T(i,g[0])+"</a>":b+="<li><a href='"+p+"' class='search-result-title'>"+i+"</a>",v.forEach(function(t){b+="<a href='"+p+'\'><p class="search-result">'+T(l,t)+"...</p></a>"}),b+="</li>",o.push({item:b,searchTextCount:a,hitCount:s,id:o.length})}}),1===e.length&&""===e[0])s.innerHTML='<div id="no-result"><i class="fa fa-search fa-5x" /></div>';else if(0===o.length)s.innerHTML='<div id="no-result"><i class="fa fa-frown-o fa-5x" /></div>';else{o.sort(function(t,e){return t.searchTextCount!==e.searchTextCount?e.searchTextCount-t.searchTextCount:t.hitCount!==e.hitCount?e.hitCount-t.hitCount:e.id-t.id});var a='<ul class="search-result-list">';o.forEach(function(t){a+=t.item}),a+="</ul>",s.innerHTML=a}};r.addEventListener("input",a),$(".local-search-pop-overlay").remove(),$("body").css("overflow",""),proceedsearch()}})};$(".popup-trigger").click(function(t){t.stopPropagation(),!1===isfetched?searchFunc(path,"local-search-input","local-search-result"):proceedsearch()}),$(".popup-btn-close").click(onPopupClose),$(".popup").click(function(t){t.stopPropagation()}),$(document).on("keyup",function(t){27===t.which&&$(".search-popup").is(":visible")&&onPopupClose()})</script>
+
+
+
+
+
+  
+
+  
+  <script src="https://cdn1.lncld.net/static/js/av-core-mini-0.6.4.js"></script>
+  <script>AV.initialize("tMf81tAkT4e7gxws5dhOydOp-gzGzoHsz","rql0VCiquIrrdHjRcpEAq0oC")</script>
+  <script>function showTime(e){var t=new AV.Query(e),n=[],o=$(".leancloud_visitors");o.each(function(){n.push($(this).attr("id").trim())}),t.containedIn("url",n),t.find().done(function(e){if(0!==e.length){for(c=0;c<e.length;c++){var t=e[c],i=t.get("url"),s=t.get("time"),l=document.getElementById(i);$(l).find(".leancloud-visitors-count").text(s)}for(var c=0;c<n.length;c++){var i=n[c],l=document.getElementById(i),r=$(l).find(".leancloud-visitors-count");""==r.text()&&r.text(0)}}else o.find(".leancloud-visitors-count").text(0)}).fail(function(e,t){console.log("Error: "+t.code+" "+t.message)})}function addCount(e){var t=$(".leancloud_visitors"),n=t.attr("id").trim(),o=t.attr("data-flag-title").trim(),i=new AV.Query(e);i.equalTo("url",n),i.find({success:function(t){if(t.length>0){var i=t[0];i.fetchWhenSave(!0),i.increment("time"),i.save(null,{success:function(e){$(document.getElementById(n)).find(".leancloud-visitors-count").text(e.get("time"))},error:function(e,t){console.log("Failed to save Visitor num, with error message: "+t.message)}})}else{var s=new e,l=new AV.ACL;l.setPublicReadAccess(!0),l.setPublicWriteAccess(!0),s.setACL(l),s.set("title",o),s.set("url",n),s.set("time",1),s.save(null,{success:function(e){$(document.getElementById(n)).find(".leancloud-visitors-count").text(e.get("time"))},error:function(e,t){console.log("Failed to create")}})}},error:function(e){console.log("Error:"+e.code+" "+e.message)}})}$(function(){var e=AV.Object.extend("Counter");1==$(".leancloud_visitors").length?addCount(e):$(".post-title-link").length>1&&showTime(e)})</script></body></html>

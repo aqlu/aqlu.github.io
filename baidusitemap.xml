@@ -4,6 +4,33 @@
 
     
   <url>
+    <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/Spring-WebServive.html</loc>
+    <lastmod>2019-01-02T06:22:35.000Z</lastmod>
+    <data>
+        <display>
+        <title>基于SpringBoot快速发布SOAP接口</title>
+        <pubTime>2019-01-02T06:22:35.000Z</pubTime>
+        
+        <tag>java</tag>
+         
+        <tag>soap</tag>
+         
+        <tag>webservice</tag>
+         
+         
+           
+             
+              <breadCrumb title="技术笔记" url="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/"/>
+          
+             
+              <breadCrumb title="Java" url="http://zyouwei.com/categories/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/"/>
+          
+        </display>
+    </data>
+    </url>
+
+    
+  <url>
     <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/Springboot-startup-error-log-be-eat-off.html</loc>
     <lastmod>2018-12-26T03:53:07.000Z</lastmod>
     <data>

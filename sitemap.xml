@@ -2,6 +2,13 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/Spring-WebServive.html</loc>
+    
+    <lastmod>2019-01-02T06:22:35.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/Springboot-startup-error-log-be-eat-off.html</loc>
     
     <lastmod>2018-12-26T03:53:07.000Z</lastmod>
