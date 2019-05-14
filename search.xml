@@ -75,8 +75,8 @@
         <category>Java</category>
       </categories>
       <tags>
-        <tag>微服务</tag>
         <tag>graphql</tag>
+        <tag>微服务</tag>
       </tags>
   </entry>
   <entry>
@@ -153,8 +153,8 @@
       </categories>
       <tags>
         <tag>java</tag>
-        <tag>hystrix</tag>
         <tag>微服务</tag>
+        <tag>hystrix</tag>
       </tags>
   </entry>
   <entry>
