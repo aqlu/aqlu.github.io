@@ -2,6 +2,20 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/ActiveMQ-High-availability.html</loc>
+    
+    <lastmod>2019-09-10T07:19:40.000Z</lastmod>
+    
+  </url>
+  
+  <url>
+    <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/ActiveMQ-Useage.html</loc>
+    
+    <lastmod>2019-09-10T06:22:37.000Z</lastmod>
+    
+  </url>
+  
+  <url>
     <loc>http://zyouwei.com/friends/index.html</loc>
     
     <lastmod>2019-05-14T05:54:23.680Z</lastmod>
@@ -67,7 +81,7 @@
   <url>
     <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/%E5%B7%A5%E5%85%B7%E7%B1%BB/MacOs-scientific-Surf-the-Internet.html</loc>
     
-    <lastmod>2018-03-22T10:25:53.066Z</lastmod>
+    <lastmod>2018-03-22T10:25:53.067Z</lastmod>
     
   </url>
   
@@ -88,14 +102,14 @@
   <url>
     <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/RocketMQ-Performance-Test.html</loc>
     
-    <lastmod>2018-01-15T09:58:12.915Z</lastmod>
+    <lastmod>2018-01-15T09:58:12.916Z</lastmod>
     
   </url>
   
   <url>
     <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/Java-Memory-Model.html</loc>
     
-    <lastmod>2018-01-12T08:00:46.918Z</lastmod>
+    <lastmod>2018-01-12T08:00:46.919Z</lastmod>
     
   </url>
   
@@ -130,7 +144,7 @@
   <url>
     <loc>http://zyouwei.com/hello-world.html</loc>
     
-    <lastmod>2017-11-21T09:11:42.020Z</lastmod>
+    <lastmod>2017-11-21T09:11:42.021Z</lastmod>
     
   </url>
   

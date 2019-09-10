@@ -1,6 +1,12 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   <url>
+    <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/ActiveMQ-High-availability.html</loc>
+    <lastmod>2019-09-10</lastmod>
+  </url>  <url>
+    <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/ActiveMQ-Useage.html</loc>
+    <lastmod>2019-09-10</lastmod>
+  </url>  <url>
     <loc>http://zyouwei.com/%E6%8A%80%E6%9C%AF%E7%AC%94%E8%AE%B0/Java/Spring-WebServive.html</loc>
     <lastmod>2019-01-02</lastmod>
   </url>  <url>
